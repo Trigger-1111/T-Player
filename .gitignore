@@ -1,0 +1,38 @@
+# --- app (Expo/React Native) ---
+app/node_modules/
+app/.expo/
+app/dist/
+app/web-build/
+app/expo-env.d.ts
+app/.kotlin/
+app/*.orig.*
+app/*.jks
+app/*.p8
+app/*.p12
+app/*.key
+app/*.mobileprovision
+app/.metro-health-check*
+app/npm-debug.*
+app/yarn-debug.*
+app/yarn-error.*
+app/*.tsbuildinfo
+app/ios/
+app/android/
+
+# Real server URL/API key for this maintainer's device — see
+# app/src/config/serverDefaults.local.example.js for the template.
+app/src/config/serverDefaults.local.js
+
+# --- backend (FastAPI) ---
+backend/venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/*.pyc
+backend/.env
+backend/library.db
+backend/media/
+backend/thumbnails/
+
+# --- misc ---
+.DS_Store
+*.pem
