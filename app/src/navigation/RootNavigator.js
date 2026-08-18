@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -44,10 +44,41 @@ const tabIconNames = {
   Settings: 'settings',
 };
 
+const tabSubtitles = {
+  Search: '유튜브에서 찾기',
+  Library: '다운로드한 곡',
+  Playlists: '나만의 재생목록',
+  Settings: '서버 · 저장공간',
+};
+
 function TabIcon({ name, focused, color }) {
   const iconName = tabIconNames[name];
   return <Ionicons name={focused ? iconName : `${iconName}-outline`} size={22} color={color} />;
 }
+
+// Plain small header titles were part of why every screen's top felt flat -
+// a colored icon badge + a real "big title" treatment gives each tab an
+// identity instead of the same generic gray text bar everywhere.
+function BigHeaderTitle({ routeName }) {
+  return (
+    <View style={styles.headerTitleRow}>
+      <View style={styles.headerBadge}>
+        <Ionicons name={tabIconNames[routeName]} size={16} color={colors.primary} />
+      </View>
+      <View>
+        <Text style={styles.headerTitle}>{tabTitles[routeName]}</Text>
+        <Text style={styles.headerSubtitle}>{tabSubtitles[routeName]}</Text>
+      </View>
+    </View>
+  );
+}
+
+const tabTitles = {
+  Search: '검색',
+  Library: '라이브러리',
+  Playlists: '플레이리스트',
+  Settings: '설정',
+};
 
 const stackHeaderOptions = {
   headerStyle: { backgroundColor: colors.bg },
@@ -59,7 +90,11 @@ const stackHeaderOptions = {
 function PlaylistsStackNavigator() {
   return (
     <PlaylistStack.Navigator screenOptions={stackHeaderOptions}>
-      <PlaylistStack.Screen name="PlaylistsHome" component={PlaylistsScreen} options={{ title: '플레이리스트' }} />
+      <PlaylistStack.Screen
+        name="PlaylistsHome"
+        component={PlaylistsScreen}
+        options={{ title: '플레이리스트', headerTitle: () => <BigHeaderTitle routeName="Playlists" /> }}
+      />
       <PlaylistStack.Screen
         name="PlaylistDetail"
         component={PlaylistDetailScreen}
@@ -93,6 +128,7 @@ function MainTabs() {
       tabBar={(props) => <TabBarWithMiniPlayer {...props} />}
       screenOptions={({ route }) => ({
         ...stackHeaderOptions,
+        headerTitle: () => <BigHeaderTitle routeName={route.name} />,
         tabBarStyle: {
           backgroundColor: colors.bg,
           borderTopColor: colors.border,
@@ -133,4 +169,15 @@ export default function RootNavigator() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
+  headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
+  headerBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    backgroundColor: colors.primaryTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: { color: colors.text, fontFamily: fonts.extraBold, fontSize: 20 },
+  headerSubtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 12, marginTop: 1 },
 });

@@ -1,15 +1,39 @@
 """yt-dlp powered search + download helpers.
 
 Downloads are for personal, offline use in the user's own music player app.
+
+YouTube now requires a "GVS PO Token" (proof-of-origin) plus a JS challenge
+solve for almost every downloadable format - without them, format resolution
+either comes back empty or the actual media request 403s even though the
+video's metadata loads fine. Two extra pieces make that work here:
+  1. A Deno runtime (yt-dlp's JS challenge solver) - installed to
+     ~/.deno/bin/deno, not on PATH, so it's referenced by absolute path.
+  2. The bgutil-ytdlp-pot-provider local HTTP server (see
+     backend/bgutil-ytdlp-pot-provider/) running on 127.0.0.1:4416, which
+     mints the PO token. It must be running for downloads to succeed - yt-dlp
+     degrades to a plain (401/403-prone) request without it, it doesn't hard
+     fail at startup.
+Audio-only formats aren't served to the client we use (web_safari) even with
+a valid token, so we grab the smallest muxed video+audio format and let
+ffmpeg discard the video track during mp3 extraction.
 """
 import os
 import uuid
+from pathlib import Path
 
 import yt_dlp
 
 from config import MEDIA_DIR, THUMBNAIL_DIR
 from db import get_conn, now
 from models import SearchResult
+
+DENO_PATH = str(Path.home() / ".deno" / "bin" / "deno")
+
+_YOUTUBE_AUTH_OPTS = {
+    "js_runtimes": {"deno": {"path": DENO_PATH}},
+    "remote_components": ["ejs:github"],
+    "extractor_args": {"youtube": {"player_client": ["web_safari"]}},
+}
 
 
 def search(query: str, limit: int = 15) -> list[SearchResult]:
@@ -20,6 +44,7 @@ def search(query: str, limit: int = 15) -> list[SearchResult]:
         "extract_flat": "in_playlist",
         "default_search": f"ytsearch{limit}",
         "noplaylist": True,
+        **_YOUTUBE_AUTH_OPTS,
     }
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(query, download=False)
@@ -90,7 +115,10 @@ def run_download(video_id: str, url_or_id: str):
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
-        "format": "bestaudio/best",
+        # No audio-only formats are offered for this client even with a
+        # valid PO token, so take the smallest muxed format that has audio
+        # and let ffmpeg strip the video track below.
+        "format": "worst[acodec!=none]/bestaudio/best",
         "outtmpl": out_template,
         "progress_hooks": [hook],
         "postprocessors": [
@@ -100,6 +128,7 @@ def run_download(video_id: str, url_or_id: str):
                 "preferredquality": "192",
             }
         ],
+        **_YOUTUBE_AUTH_OPTS,
     }
 
     query = url_or_id if url_or_id.startswith("http") else url_or_id

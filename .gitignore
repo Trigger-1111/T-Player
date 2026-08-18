@@ -25,6 +25,9 @@ app/src/config/serverDefaults.local.js
 
 # --- backend (FastAPI) ---
 backend/venv/
+# Third-party PO token provider server (cloned, not our code - see
+# downloader.py docstring for setup steps to reproduce it on a fresh machine)
+backend/bgutil-ytdlp-pot-provider/
 backend/__pycache__/
 backend/**/__pycache__/
 backend/*.pyc
