@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 const PlayerContext = createContext(null);
-const STORAGE_KEY = 'dd-music:player-state';
+const STORAGE_KEY = 't-player:player-state';
 
 export function PlayerProvider({ children }) {
   const player = useAudioPlayer(null, { updateInterval: 500 });

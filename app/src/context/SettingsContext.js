@@ -4,7 +4,7 @@ import { DEFAULT_API_KEY, DEFAULT_SERVER_URL } from '../config/serverDefaults';
 
 const SettingsContext = createContext(null);
 
-const STORAGE_KEY = 'dd-music:settings';
+const STORAGE_KEY = 't-player:settings';
 
 export function SettingsProvider({ children }) {
   // Start from the baked-in defaults so the app is usable immediately on a

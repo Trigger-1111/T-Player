@@ -3,7 +3,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 
 const DownloadsContext = createContext(null);
-const STORAGE_KEY = 'dd-music:local-downloads';
+const STORAGE_KEY = 't-player:local-downloads';
 
 function tracksDir() {
   const dir = new Directory(Paths.document, 'tracks');
