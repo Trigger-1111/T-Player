@@ -44,44 +44,24 @@ const tabIconNames = {
   Settings: 'settings',
 };
 
-const tabSubtitles = {
-  Search: '유튜브에서 찾기',
-  Library: '다운로드한 곡',
-  Playlists: '나만의 재생목록',
-  Settings: '서버 · 저장공간',
-};
-
 function TabIcon({ name, focused, color }) {
   const iconName = tabIconNames[name];
   return <Ionicons name={focused ? iconName : `${iconName}-outline`} size={22} color={color} />;
 }
 
-// Plain small header titles were part of why every screen's top felt flat -
-// a real "big title" treatment gives each tab an identity instead of the
-// same generic gray text bar everywhere. No icon here - it's the same icon
-// as the tab bar right below, and repeating it just felt redundant rather
-// than adding anything.
-function BigHeaderTitle({ routeName }) {
-  return (
-    <View style={styles.headerTitleBlock}>
-      <Text style={styles.headerTitle}>{tabTitles[routeName]}</Text>
-      <Text style={styles.headerSubtitle}>{tabSubtitles[routeName]}</Text>
-    </View>
-  );
+// Compact brand bar on every screen instead of a big per-tab title - each
+// screen's own content (search bar, stat cards, etc.) already says what
+// tab you're on, so this just stays the same everywhere.
+function BrandHeaderTitle() {
+  return <Text style={styles.brandTitle}>T-Player</Text>;
 }
-
-const tabTitles = {
-  Search: '검색',
-  Library: '라이브러리',
-  Playlists: '플레이리스트',
-  Settings: '설정',
-};
 
 const stackHeaderOptions = {
   headerStyle: { backgroundColor: colors.bg },
   headerShadowVisible: false,
   headerTintColor: colors.text,
   headerTitleStyle: { fontFamily: fonts.bold, fontSize: 18 },
+  headerTitleAlign: 'center',
 };
 
 function PlaylistsStackNavigator() {
@@ -90,7 +70,7 @@ function PlaylistsStackNavigator() {
       <PlaylistStack.Screen
         name="PlaylistsHome"
         component={PlaylistsScreen}
-        options={{ title: '플레이리스트', headerTitle: () => <BigHeaderTitle routeName="Playlists" /> }}
+        options={{ headerTitle: () => <BrandHeaderTitle /> }}
       />
       <PlaylistStack.Screen
         name="PlaylistDetail"
@@ -125,17 +105,17 @@ function MainTabs() {
       tabBar={(props) => <TabBarWithMiniPlayer {...props} />}
       screenOptions={({ route }) => ({
         ...stackHeaderOptions,
-        headerTitle: () => <BigHeaderTitle routeName={route.name} />,
+        headerTitle: () => <BrandHeaderTitle />,
         tabBarStyle: {
-          backgroundColor: colors.purple,
-          borderTopWidth: 0,
+          backgroundColor: colors.bg,
+          borderTopColor: colors.border,
           height: tabBarHeight,
           paddingBottom: Math.max(insets.bottom, 24),
           paddingTop: 10,
         },
         tabBarLabelStyle: { fontFamily: fonts.semiBold, fontSize: 11 },
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: 'rgba(255,255,255,0.55)',
+        tabBarInactiveTintColor: colors.textMuted,
         tabBarIcon: ({ focused, color }) => <TabIcon name={route.name} focused={focused} color={color} />,
       })}
     >
@@ -166,7 +146,5 @@ export default function RootNavigator() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
-  headerTitleBlock: { justifyContent: 'center' },
-  headerTitle: { color: colors.text, fontFamily: fonts.extraBold, fontSize: 22, lineHeight: 26 },
-  headerSubtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, marginTop: 2 },
+  brandTitle: { color: colors.primary, fontFamily: fonts.extraBold, fontSize: 18, letterSpacing: 0.3 },
 });

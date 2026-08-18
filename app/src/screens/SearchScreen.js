@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     left: 14,
     right: 14,
     bottom: 14,
-    backgroundColor: colors.purple,
+    backgroundColor: colors.ink,
     borderRadius: 14,
     paddingVertical: 10,
     paddingHorizontal: 16,

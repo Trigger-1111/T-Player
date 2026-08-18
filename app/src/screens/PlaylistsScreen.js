@@ -87,7 +87,7 @@ export default function PlaylistsScreen({ navigation }) {
               onLongPress={() => remove(item)}
             >
               <View style={styles.rowIcon}>
-                <Ionicons name="albums" size={20} color={colors.purple} />
+                <Ionicons name="albums" size={20} color={colors.primary} />
               </View>
               <View style={styles.rowText}>
                 <Text style={styles.name}>{item.name}</Text>
