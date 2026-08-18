@@ -37,6 +37,7 @@ export function createApiClient(serverUrl, apiKey) {
     trackStatus: (id) => request(`/api/tracks/${id}/status`),
     deleteTrack: (id) => request(`/api/tracks/${id}`, { method: 'DELETE' }),
     trackFileUrl: (id) => `${base}/api/tracks/${id}/file`,
+    previewUrl: (id) => `${base}/api/preview/${id}`,
     authHeaders: () => ({ 'X-API-Key': apiKey || '' }),
     listPlaylists: () => request('/api/playlists'),
     createPlaylist: (name) => request('/api/playlists', { method: 'POST', body: JSON.stringify({ name }) }),

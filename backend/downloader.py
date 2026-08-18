@@ -18,6 +18,7 @@ a valid token, so we grab the smallest muxed video+audio format and let
 ffmpeg discard the video track during mp3 extraction.
 """
 import os
+import time
 import uuid
 from pathlib import Path
 
@@ -70,6 +71,46 @@ def search(query: str, limit: int = 15) -> list[SearchResult]:
             )
         )
     return results
+
+
+# Resolved googlevideo URLs are IP-locked to whoever (this server) requested
+# them, so the phone can never fetch one directly - the backend has to
+# proxy the bytes through itself. Cache the resolved URL/headers briefly so
+# a player doing several range requests for the same track (seeking, retry
+# after a hiccup) doesn't re-run yt-dlp on every single request; the actual
+# URLs are valid for hours, this cache is just conservative.
+_PREVIEW_CACHE: dict[str, dict] = {}
+_PREVIEW_CACHE_TTL = 30 * 60
+
+
+def resolve_preview(video_id: str) -> tuple[str, dict]:
+    """Resolves a direct, proxyable media URL + the headers required to
+    fetch it, for live preview streaming (no file saved). Prefers a plain
+    HTTPS progressive format (not HLS) so the caller can just forward Range
+    requests byte-for-byte instead of reassembling segments."""
+    cached = _PREVIEW_CACHE.get(video_id)
+    if cached and cached["expires_at"] > time.monotonic():
+        return cached["url"], cached["headers"]
+
+    opts = {
+        "quiet": True,
+        "no_warnings": True,
+        "skip_download": True,
+        "noplaylist": True,
+        "format": "best[protocol=https][acodec!=none]/18",
+        **_YOUTUBE_AUTH_OPTS,
+    }
+    with yt_dlp.YoutubeDL(opts) as ydl:
+        info = ydl.extract_info(f"https://www.youtube.com/watch?v={video_id}", download=False)
+
+    url = info["url"]
+    headers = info.get("http_headers") or {}
+    _PREVIEW_CACHE[video_id] = {
+        "url": url,
+        "headers": headers,
+        "expires_at": time.monotonic() + _PREVIEW_CACHE_TTL,
+    }
+    return url, headers
 
 
 def _set_status(track_id: str, **fields):

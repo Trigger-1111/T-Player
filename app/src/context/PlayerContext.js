@@ -40,8 +40,11 @@ export function PlayerProvider({ children }) {
   // (server offline, expired API key, dropped network) fails *silently* -
   // isLoaded just never becomes true and nothing plays or is reported to the
   // user. We only know the source is a remote stream (vs. a local downloaded
-  // file) when it carries `headers`, so for those we HEAD-check the URL
-  // first and surface a real error instead of a dead spinner.
+  // file) when it carries `headers`, so for those we sanity-check the URL
+  // first and surface a real error instead of a dead spinner. A ranged GET
+  // (not HEAD) - the backend's file/preview endpoints only implement GET,
+  // and media servers in general are far more reliably tested with a tiny
+  // real request than a HEAD they may not support at all.
   const loadTrack = useCallback(
     async (tracks, index, autoplay = true) => {
       const track = tracks[index];
@@ -51,7 +54,9 @@ export function PlayerProvider({ children }) {
 
       if (track.source?.headers) {
         try {
-          const res = await fetch(track.source.uri, { method: 'HEAD', headers: track.source.headers });
+          const res = await fetch(track.source.uri, {
+            headers: { ...track.source.headers, Range: 'bytes=0-1' },
+          });
           if (!res.ok) throw new Error(`서버 응답 ${res.status}`);
         } catch (err) {
           if (token !== loadTokenRef.current) return; // superseded by a newer load

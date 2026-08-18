@@ -1,8 +1,10 @@
 import uuid
 
-from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException
-from fastapi.responses import FileResponse
+import httpx
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.concurrency import run_in_threadpool
 
 import downloader
 from config import API_KEY, MEDIA_DIR, THUMBNAIL_DIR
@@ -39,6 +41,58 @@ def api_search(q: str, limit: int = 15):
         return downloader.search(q, limit=limit)
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"search failed: {exc}") from exc
+
+
+# --------------------------------------------------------------- preview ---
+# Live-streams a track straight from YouTube without saving anything, so the
+# app can let you listen before deciding to keep it. The resolved YouTube
+# CDN URL is locked to this server's IP, so we fetch it here and relay the
+# bytes rather than handing the URL to the phone (which would 403 from any
+# other network).
+@app.get("/api/preview/{video_id}", dependencies=[Depends(require_api_key)])
+async def api_preview(video_id: str, request: Request):
+    try:
+        url, upstream_headers = await run_in_threadpool(downloader.resolve_preview, video_id)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=502, detail=f"preview resolve failed: {exc}") from exc
+
+    fwd_headers = dict(upstream_headers)
+    range_header = request.headers.get("range")
+    if range_header:
+        fwd_headers["Range"] = range_header
+
+    client = httpx.AsyncClient(timeout=30.0, follow_redirects=True)
+    try:
+        upstream_req = client.build_request("GET", url, headers=fwd_headers)
+        upstream = await client.send(upstream_req, stream=True)
+    except Exception as exc:  # noqa: BLE001
+        await client.aclose()
+        raise HTTPException(status_code=502, detail=f"preview fetch failed: {exc}") from exc
+
+    if upstream.status_code >= 400:
+        await upstream.aclose()
+        await client.aclose()
+        raise HTTPException(status_code=502, detail=f"upstream returned {upstream.status_code}")
+
+    async def relay():
+        try:
+            async for chunk in upstream.aiter_bytes():
+                yield chunk
+        finally:
+            await upstream.aclose()
+            await client.aclose()
+
+    passthrough_headers = {
+        k: upstream.headers[k]
+        for k in ("content-length", "content-range", "accept-ranges")
+        if k in upstream.headers
+    }
+    return StreamingResponse(
+        relay(),
+        status_code=upstream.status_code,
+        media_type=upstream.headers.get("content-type", "audio/mp4"),
+        headers=passthrough_headers,
+    )
 
 
 # -------------------------------------------------------------- download ---

@@ -27,14 +27,14 @@ export default function SearchScreen() {
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
-  const [busyIds, setBusyIds] = useState({});
+  const [savingIds, setSavingIds] = useState({});
 
   const isUrl = (text) => /^https?:\/\//.test(text.trim());
 
   const runSearch = async () => {
     if (!query.trim()) return;
     if (isUrl(query)) {
-      await previewAndSave(query.trim(), { id: 'url', title: query.trim() });
+      await saveToLibrary(query.trim(), { id: 'url', title: query.trim() });
       return;
     }
     setSearching(true);
@@ -49,49 +49,33 @@ export default function SearchScreen() {
     }
   };
 
-  // There's no true instant streaming preview here - YouTube now requires a
-  // signed token + JS challenge solve for basically every downloadable
-  // format, so the backend already has to run the full yt-dlp download to
-  // get *any* audio out of it. Instead we kick that download off and, the
-  // moment it's ready, start playing it straight away - by then it's also
-  // sitting in the library, so nothing extra to do if the user keeps it.
-  const waitUntilReady = async (trackId) => {
-    for (let i = 0; i < 60; i++) {
-      const t = await api.trackStatus(trackId);
-      if (t.status === 'ready') return t;
-      if (t.status === 'failed') {
-        Alert.alert('다운로드 실패', t.error || '알 수 없는 오류가 발생했어요.');
-        return null;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-    }
-    Alert.alert('시간 초과', '다운로드가 오래 걸리고 있어요. 라이브러리 탭에서 진행 상황을 확인해보세요.');
-    return null;
+  // Live-streams straight from the backend's /api/preview proxy - nothing
+  // saved, nothing downloaded. Tap the row to listen; tap the download icon
+  // separately to actually keep it in the library.
+  const preview = (item) => {
+    playQueue(
+      [
+        {
+          id: item.id,
+          title: item.title,
+          uploader: item.uploader,
+          thumbnailUrl: item.thumbnail_url,
+          source: { uri: api.previewUrl(item.id), headers: api.authHeaders() },
+        },
+      ],
+      0
+    );
   };
 
-  const previewAndSave = async (urlOrId, item) => {
-    setBusyIds((d) => ({ ...d, [item.id]: true }));
+  const saveToLibrary = async (urlOrId, item) => {
+    setSavingIds((d) => ({ ...d, [item.id]: true }));
     try {
-      const track = await api.download(urlOrId.startsWith('http') ? urlOrId : `https://www.youtube.com/watch?v=${urlOrId}`);
-      const ready = await waitUntilReady(track.id);
-      if (ready) {
-        playQueue(
-          [
-            {
-              id: ready.id,
-              title: ready.title,
-              uploader: ready.uploader,
-              thumbnailUrl: ready.thumbnail_url,
-              source: { uri: api.trackFileUrl(ready.id), headers: api.authHeaders() },
-            },
-          ],
-          0
-        );
-      }
+      await api.download(urlOrId.startsWith('http') ? urlOrId : `https://www.youtube.com/watch?v=${urlOrId}`);
+      Alert.alert('다운로드 시작', `${item.title} 다운로드를 서버에 요청했습니다.\n라이브러리 탭에서 진행 상황을 확인하세요.`);
     } catch (err) {
       Alert.alert('다운로드 요청 실패', err.message);
     } finally {
-      setBusyIds((d) => {
+      setSavingIds((d) => {
         const { [item.id]: _drop, ...rest } = d;
         return rest;
       });
@@ -125,7 +109,7 @@ export default function SearchScreen() {
         <View style={styles.emptyState}>
           <Ionicons name="search" size={40} color={colors.textMuted} />
           <Text style={styles.emptyTitle}>유튜브에서 찾아보세요</Text>
-          <Text style={styles.emptyBody}>곡을 탭하면 바로 미리듣기가 시작되고, 라이브러리에도 저장돼요.</Text>
+          <Text style={styles.emptyBody}>곡을 탭하면 바로 미리듣기가 재생돼요. 다운로드 아이콘을 누르면 라이브러리에 저장돼요.</Text>
         </View>
       )}
 
@@ -144,12 +128,14 @@ export default function SearchScreen() {
           <Card tight>
             <TrackRow
               track={item}
-              onPress={() => previewAndSave(item.id, item)}
+              onPress={() => preview(item)}
               right={
-                busyIds[item.id] ? (
+                savingIds[item.id] ? (
                   <ActivityIndicator color={colors.primary} />
                 ) : (
-                  <Ionicons name="play-circle-outline" size={24} color={colors.primary} />
+                  <Pressable onPress={() => saveToLibrary(item.id, item)} hitSlop={10}>
+                    <Ionicons name="download-outline" size={22} color={colors.primary} />
+                  </Pressable>
                 )
               }
             />
