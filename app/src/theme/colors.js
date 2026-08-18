@@ -1,27 +1,30 @@
-// Single source of truth for the app's color scheme: white + red, with a
-// warm neutral scale and a near-black contrast surface mixed in so the UI
-// doesn't read as flat white-on-white.
+// Dark navy + indigo/purple + red scheme (per reference mockup), replacing
+// the earlier white+red pass. Same token names throughout the app, so this
+// file alone re-themes almost everything.
 export const colors = {
-  bg: '#FFFCFB', // barely-warm white, not clinical pure white
-  surface: '#F6EFEC', // input fields, rows, cards - warm light neutral
-  surfaceAlt: '#EDE1DC', // pressed states, thumb placeholders
-  border: '#E8DBD5',
+  bg: '#0B0C1D', // app background - near-black navy
+  surface: '#161A38', // rows, cards, inputs
+  surfaceAlt: '#232752', // pressed states, thumb placeholders
+  border: '#2C2F5C',
 
-  ink: '#17130F', // near-black w/ a hair of warmth - big contrast blocks (mini player, sheets)
-  inkAlt: '#241C17',
+  ink: '#171333', // extra-dark panel (Now Playing background)
+  inkAlt: '#221D45',
 
-  text: '#1C1712',
-  textSecondary: '#7A6F68',
-  textMuted: '#A79C94',
-  placeholder: '#B3A8A0',
+  text: '#F4F4FB',
+  textSecondary: '#ADAFD6',
+  textMuted: '#7C7FAE',
+  placeholder: '#6A6C9C',
 
-  primary: '#E11D2E', // red - buttons, active tab, progress, links
+  purple: '#4B3F91', // header bars, bottom nav pill
+  purpleDark: '#332A6B',
+
+  primary: '#E11D2E', // red - the "+" buttons, active states, progress
   primaryPressed: '#B71424',
-  primaryTint: '#FBE4E4', // pale red wash for badges/selected rows
+  primaryTint: '#3A1E2C',
   onPrimary: '#FFFFFF',
 
-  accent: '#F2A93C', // warm gold - secondary accent for badges/highlights only
+  accent: '#F2A93C',
   onInk: '#FFFDFB',
 
-  destructive: '#B3261E',
+  destructive: '#FF5470',
 };

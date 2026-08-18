@@ -7,7 +7,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
-const DISC_SIZE = 260;
+const DISC_SIZE = 200;
 
 function formatTime(seconds) {
   if (!seconds && seconds !== 0) return '0:00';
@@ -105,6 +105,14 @@ export default function NowPlayingScreen({ navigation }) {
         )}
       </View>
 
+      <View style={styles.lyricsCard}>
+        <View style={styles.lyricsHeader}>
+          <Ionicons name="mic-outline" size={14} color="rgba(255,255,255,0.5)" />
+          <Text style={styles.lyricsHeaderText}>가사</Text>
+        </View>
+        <Text style={styles.lyricsPlaceholder}>가사는 준비 중이에요.</Text>
+      </View>
+
       <View style={styles.sliderWrap}>
         <Slider
           style={styles.slider}
@@ -155,7 +163,7 @@ const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 },
   closeBtn: { width: 26, alignItems: 'center' },
   topBarLabel: { color: 'rgba(255,255,255,0.55)', fontFamily: fonts.semiBold, fontSize: 12, letterSpacing: 1 },
-  artworkWrap: { alignItems: 'center', marginTop: 28 },
+  artworkWrap: { alignItems: 'center', marginTop: 16 },
   discShadowWrap: {
     width: DISC_SIZE,
     height: DISC_SIZE,
@@ -202,14 +210,24 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(255,255,255,0.35)',
   },
-  meta: { marginTop: 28 },
-  title: { color: colors.onInk, fontFamily: fonts.extraBold, fontSize: 22, lineHeight: 28 },
+  meta: { marginTop: 20 },
+  title: { color: colors.onInk, fontFamily: fonts.extraBold, fontSize: 20, lineHeight: 25 },
   uploader: { color: 'rgba(255,255,255,0.55)', fontFamily: fonts.medium, fontSize: 14, marginTop: 6 },
-  sliderWrap: { marginTop: 24 },
+  lyricsCard: {
+    marginTop: 16,
+    backgroundColor: colors.inkAlt,
+    borderRadius: 14,
+    padding: 14,
+    minHeight: 76,
+  },
+  lyricsHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  lyricsHeaderText: { color: 'rgba(255,255,255,0.5)', fontFamily: fonts.semiBold, fontSize: 11, letterSpacing: 0.5 },
+  lyricsPlaceholder: { color: 'rgba(255,255,255,0.4)', fontFamily: fonts.medium, fontSize: 13 },
+  sliderWrap: { marginTop: 18 },
   slider: { width: '100%', height: 32 },
   timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4 },
   time: { color: 'rgba(255,255,255,0.5)', fontFamily: fonts.medium, fontSize: 12 },
-  controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 32, paddingHorizontal: 4 },
+  controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20, paddingHorizontal: 4 },
   playBtn: {
     width: 64,
     height: 64,

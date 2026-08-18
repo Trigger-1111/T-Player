@@ -10,9 +10,10 @@ function formatDuration(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-export default function TrackRow({ track, onPress, right }) {
+export default function TrackRow({ track, onPress, left, right }) {
   return (
     <Pressable style={({ pressed }) => [styles.row, pressed && styles.rowPressed]} onPress={onPress}>
+      {left}
       {track.thumbnail_url || track.thumbnailUrl ? (
         <Image source={{ uri: track.thumbnail_url || track.thumbnailUrl }} style={styles.thumb} />
       ) : (

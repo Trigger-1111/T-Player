@@ -20,8 +20,11 @@ export default function SearchScreen() {
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
   const [savingIds, setSavingIds] = useState({});
+  const [selectedIds, setSelectedIds] = useState({});
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const isUrl = (text) => /^https?:\/\//.test(text.trim());
+  const selectedCount = Object.keys(selectedIds).length;
 
   const runSearch = async () => {
     if (!query.trim()) return;
@@ -34,6 +37,7 @@ export default function SearchScreen() {
       const res = await api.search(query.trim());
       setResults(res);
       setSearched(true);
+      setSelectedIds({});
     } catch (err) {
       Alert.alert('검색 실패', err.message);
     } finally {
@@ -42,8 +46,8 @@ export default function SearchScreen() {
   };
 
   // Live-streams straight from the backend's /api/preview proxy - nothing
-  // saved, nothing downloaded. Tap the row to listen; tap the download icon
-  // separately to actually keep it in the library.
+  // saved, nothing downloaded. Tap the row to listen; tap the + separately
+  // to actually keep it in the library.
   const preview = (item) => {
     playQueue(
       [
@@ -59,10 +63,23 @@ export default function SearchScreen() {
     );
   };
 
+  const toggleSelected = (id) => {
+    setSelectedIds((prev) => {
+      const next = { ...prev };
+      if (next[id]) delete next[id];
+      else next[id] = true;
+      return next;
+    });
+  };
+
+  const requestDownload = async (urlOrId) => {
+    await api.download(urlOrId.startsWith('http') ? urlOrId : `https://www.youtube.com/watch?v=${urlOrId}`);
+  };
+
   const saveToLibrary = async (urlOrId, item) => {
     setSavingIds((d) => ({ ...d, [item.id]: true }));
     try {
-      await api.download(urlOrId.startsWith('http') ? urlOrId : `https://www.youtube.com/watch?v=${urlOrId}`);
+      await requestDownload(urlOrId);
       Alert.alert('다운로드 시작', `${item.title} 다운로드를 서버에 요청했습니다.\n라이브러리 탭에서 진행 상황을 확인하세요.`);
     } catch (err) {
       Alert.alert('다운로드 요청 실패', err.message);
@@ -71,6 +88,21 @@ export default function SearchScreen() {
         const { [item.id]: _drop, ...rest } = d;
         return rest;
       });
+    }
+  };
+
+  const saveSelected = async () => {
+    const ids = Object.keys(selectedIds);
+    if (ids.length === 0) return;
+    setBulkSaving(true);
+    try {
+      await Promise.all(ids.map((id) => requestDownload(id)));
+      Alert.alert('다운로드 시작', `${ids.length}곡 다운로드를 서버에 요청했습니다.\n라이브러리 탭에서 진행 상황을 확인하세요.`);
+      setSelectedIds({});
+    } catch (err) {
+      Alert.alert('다운로드 요청 실패', err.message);
+    } finally {
+      setBulkSaving(false);
     }
   };
 
@@ -104,33 +136,59 @@ export default function SearchScreen() {
           <EmptyState
             icon="search"
             title="유튜브에서 찾아보세요"
-            body="곡을 탭하면 바로 미리듣기가 재생돼요. 다운로드 아이콘을 누르면 라이브러리에 저장돼요."
+            body="곡을 탭하면 바로 미리듣기가 재생돼요. 체크 후 한 번에, 또는 + 로 하나씩 저장할 수 있어요."
           />
         ) : results.length === 0 ? (
           <EmptyState icon="sad-outline" title="검색 결과가 없어요" />
         ) : (
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            renderItem={({ item }) => (
-              <Card tight>
-                <TrackRow
-                  track={item}
-                  onPress={() => preview(item)}
-                  right={
-                    savingIds[item.id] ? (
-                      <ActivityIndicator color={colors.primary} />
-                    ) : (
-                      <Pressable onPress={() => saveToLibrary(item.id, item)} hitSlop={10}>
-                        <Ionicons name="download-outline" size={22} color={colors.primary} />
-                      </Pressable>
-                    )
-                  }
-                />
-              </Card>
+          <>
+            <FlatList
+              data={results}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContent}
+              renderItem={({ item }) => {
+                const checked = !!selectedIds[item.id];
+                return (
+                  <Card tight>
+                    <TrackRow
+                      track={item}
+                      onPress={() => preview(item)}
+                      left={
+                        <Pressable onPress={() => toggleSelected(item.id)} hitSlop={10}>
+                          <Ionicons
+                            name={checked ? 'checkbox' : 'square-outline'}
+                            size={22}
+                            color={checked ? colors.primary : colors.textMuted}
+                          />
+                        </Pressable>
+                      }
+                      right={
+                        savingIds[item.id] ? (
+                          <ActivityIndicator color={colors.primary} />
+                        ) : (
+                          <Pressable onPress={() => saveToLibrary(item.id, item)} hitSlop={10} style={styles.addBtn}>
+                            <Ionicons name="add" size={18} color={colors.onPrimary} />
+                          </Pressable>
+                        )
+                      }
+                    />
+                  </Card>
+                );
+              }}
+            />
+            {selectedCount > 0 && (
+              <View style={styles.bulkBar}>
+                <Text style={styles.bulkText}>{selectedCount}곡 선택됨</Text>
+                <Pressable style={styles.bulkBtn} onPress={saveSelected} disabled={bulkSaving}>
+                  {bulkSaving ? (
+                    <ActivityIndicator color={colors.onPrimary} />
+                  ) : (
+                    <Text style={styles.bulkBtnText}>선택한 곡 다운로드</Text>
+                  )}
+                </Pressable>
+              </View>
             )}
-          />
+          </>
         )}
       </View>
     </View>
@@ -166,4 +224,33 @@ const styles = StyleSheet.create({
   },
   searchBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
   listContent: { paddingTop: 8, paddingBottom: 16 },
+  addBtn: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bulkBar: {
+    position: 'absolute',
+    left: 14,
+    right: 14,
+    bottom: 14,
+    backgroundColor: colors.purple,
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 8,
+  },
+  bulkText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 13 },
+  bulkBtn: { backgroundColor: colors.primary, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10 },
+  bulkBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 13 },
 });

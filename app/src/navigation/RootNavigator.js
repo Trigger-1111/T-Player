@@ -127,15 +127,15 @@ function MainTabs() {
         ...stackHeaderOptions,
         headerTitle: () => <BigHeaderTitle routeName={route.name} />,
         tabBarStyle: {
-          backgroundColor: colors.bg,
-          borderTopColor: colors.border,
+          backgroundColor: colors.purple,
+          borderTopWidth: 0,
           height: tabBarHeight,
           paddingBottom: Math.max(insets.bottom, 24),
           paddingTop: 10,
         },
         tabBarLabelStyle: { fontFamily: fonts.semiBold, fontSize: 11 },
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarInactiveTintColor: 'rgba(255,255,255,0.55)',
         tabBarIcon: ({ focused, color }) => <TabIcon name={route.name} focused={focused} color={color} />,
       })}
     >

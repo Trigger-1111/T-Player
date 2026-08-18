@@ -87,7 +87,7 @@ export default function PlaylistsScreen({ navigation }) {
               onLongPress={() => remove(item)}
             >
               <View style={styles.rowIcon}>
-                <Ionicons name="albums" size={18} color={colors.primary} />
+                <Ionicons name="albums" size={20} color={colors.purple} />
               </View>
               <View style={styles.rowText}>
                 <Text style={styles.name}>{item.name}</Text>
@@ -130,10 +130,10 @@ const styles = StyleSheet.create({
   },
   rowPressed: { backgroundColor: colors.surface },
   rowIcon: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     borderRadius: 10,
-    backgroundColor: colors.primaryTint,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
