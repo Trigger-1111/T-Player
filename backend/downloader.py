@@ -13,9 +13,20 @@ video's metadata loads fine. Two extra pieces make that work here:
      mints the PO token. It must be running for downloads to succeed - yt-dlp
      degrades to a plain (401/403-prone) request without it, it doesn't hard
      fail at startup.
-Audio-only formats aren't served to the client we use (web_safari) even with
-a valid token, so we grab the smallest muxed video+audio format and let
-ffmpeg discard the video track during mp3 extraction.
+Client choice matters too, and each has its own catch:
+  - web_safari offers HLS (m3u8), which has no per-URL size limit but is
+    only muxed video+audio, and is missing entirely for some videos
+    (format-not-available, seen in practice on a real search result).
+  - android_vr reliably offers clean https, audio-only AAC (m4a) - but
+    confirmed by hand that a resolved android_vr URL only serves ~1,000,000
+    bytes total, and only from a request starting at byte 0; anything past
+    that (or a non-zero start, even on a freshly re-resolved URL) 403s. Full
+    songs are usually well over that, so this client is preview-only in
+    practice, not a real download source.
+We ask for both clients so yt-dlp can combine their formats and the selector
+below can prefer HLS (unbounded) over the android_vr audio-only stream
+(better quality/smaller size, but capped) - falling back to the capped
+stream only for videos where HLS genuinely isn't offered by anything.
 """
 import os
 import time
@@ -33,8 +44,29 @@ DENO_PATH = str(Path.home() / ".deno" / "bin" / "deno")
 _YOUTUBE_AUTH_OPTS = {
     "js_runtimes": {"deno": {"path": DENO_PATH}},
     "remote_components": ["ejs:github"],
-    "extractor_args": {"youtube": {"player_client": ["web_safari"]}},
+    "extractor_args": {"youtube": {"player_client": ["web_safari", "android_vr"]}},
 }
+
+# Two different selectors because the two call sites can't accept the same
+# tradeoffs:
+#
+# Downloads go through yt-dlp's own downloader, which reassembles HLS
+# natively - so prefer HLS first (no size cap, works for a full save),
+# falling back to the capped android_vr audio-only stream, then anything
+# else, for the rare video with no HLS from either client.
+_DOWNLOAD_FORMAT = (
+    "bestaudio[protocol^=m3u8]/best[protocol^=m3u8][acodec!=none]"
+    "/bestaudio[acodec^=mp4a][protocol=https]/bestaudio[protocol=https]"
+    "/best[protocol=https][acodec!=none]/18"
+)
+
+# Preview is proxied by hand (main.py just relays raw bytes with Range
+# support - see api_preview) - it can't do anything with an HLS URL, that
+# resolves to a manifest listing more URLs, not audio bytes. So it has to
+# stay on a genuinely progressive stream, which in practice means the
+# capped android_vr audio-only format: fine for a preview, since the ~1MB
+# limit (see api_preview's comment) works out to roughly a minute of audio.
+_PREVIEW_FORMAT = "bestaudio[acodec^=mp4a][protocol=https]/bestaudio[protocol=https]/best[protocol=https][acodec!=none]/18"
 
 
 def search(query: str, limit: int = 15) -> list[SearchResult]:
@@ -97,7 +129,7 @@ def resolve_preview(video_id: str) -> tuple[str, dict]:
         "no_warnings": True,
         "skip_download": True,
         "noplaylist": True,
-        "format": "best[protocol=https][acodec!=none]/18",
+        "format": _PREVIEW_FORMAT,
         **_YOUTUBE_AUTH_OPTS,
     }
     with yt_dlp.YoutubeDL(opts) as ydl:
@@ -156,10 +188,7 @@ def run_download(video_id: str, url_or_id: str):
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
-        # No audio-only formats are offered for this client even with a
-        # valid PO token, so take the smallest muxed format that has audio
-        # and let ffmpeg strip the video track below.
-        "format": "worst[acodec!=none]/bestaudio/best",
+        "format": _DOWNLOAD_FORMAT,
         "outtmpl": out_template,
         "progress_hooks": [hook],
         "postprocessors": [
@@ -202,7 +231,14 @@ def run_download(video_id: str, url_or_id: str):
             error=None,
         )
     except Exception as exc:  # noqa: BLE001
-        _set_status(video_id, status="failed", error=str(exc)[:500])
+        message = str(exc)
+        if "403" in message:
+            # Almost certainly the android_vr-only fallback's ~1MB cap (see
+            # module docstring) - HLS wasn't offered for this video by any
+            # client we tried, so there was no uncapped source to fall back
+            # to. Not retryable as-is; say so plainly instead of a bare 403.
+            message = "이 영상은 지금 유튜브 제한 때문에 전체 다운로드가 안 돼요. (미리듣기는 가능할 수 있어요)"
+        _set_status(video_id, status="failed", error=message[:500])
 
 
 def extract_video_id(url_or_id: str) -> str:
