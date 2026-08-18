@@ -5,8 +5,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { useDownloads } from '../context/DownloadsContext';
 import { createApiClient } from '../api/client';
+import Card from '../components/Card';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
+
+function SectionTitle({ icon, children }) {
+  return (
+    <View style={styles.sectionTitleRow}>
+      <View style={styles.sectionIcon}>
+        <Ionicons name={icon} size={14} color={colors.primary} />
+      </View>
+      <Text style={styles.sectionTitle}>{children}</Text>
+    </View>
+  );
+}
 
 function Field({ icon, label, ...inputProps }) {
   return (
@@ -84,59 +96,73 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const usedMb = usedBytes / 1024 / 1024;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.sectionTitle}>서버 연결</Text>
-      <Field
-        icon="server-outline"
-        label="서버 주소"
-        value={urlInput}
-        onChangeText={setUrlInput}
-        autoCapitalize="none"
-        autoCorrect={false}
-        placeholder="http://192.168.0.10:8000"
-      />
-      <Field
-        icon="key-outline"
-        label="API 키"
-        value={keyInput}
-        onChangeText={setKeyInput}
-        autoCapitalize="none"
-        autoCorrect={false}
-        placeholder="서버 backend/.env 의 API_KEY 값"
-        secureTextEntry
-      />
+      <SectionTitle icon="server-outline">서버 연결</SectionTitle>
+      <Card style={styles.sectionCard}>
+        <Field
+          icon="link-outline"
+          label="서버 주소"
+          value={urlInput}
+          onChangeText={setUrlInput}
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="http://192.168.0.10:8000"
+        />
+        <Field
+          icon="key-outline"
+          label="API 키"
+          value={keyInput}
+          onChangeText={setKeyInput}
+          autoCapitalize="none"
+          autoCorrect={false}
+          placeholder="서버 backend/.env 의 API_KEY 값"
+          secureTextEntry
+        />
+        <View style={styles.row}>
+          <Pressable style={styles.btn} onPress={onSave}>
+            <Text style={styles.btnText}>저장</Text>
+          </Pressable>
+          <Pressable style={[styles.btn, styles.btnOutline]} onPress={onTest} disabled={testing}>
+            {testing ? <ActivityIndicator color={colors.primary} /> : <Text style={styles.btnOutlineText}>연결 테스트</Text>}
+          </Pressable>
+        </View>
+      </Card>
 
-      <View style={styles.row}>
-        <Pressable style={styles.btn} onPress={onSave}>
-          <Text style={styles.btnText}>저장</Text>
+      <SectionTitle icon="phone-portrait-outline">저장 공간</SectionTitle>
+      <Card style={[styles.sectionCard, styles.usageCard]}>
+        <View style={styles.usageTopRow}>
+          <Text style={styles.usageValue}>{usedMb.toFixed(1)} MB</Text>
+          <Text style={styles.usageCount}>{Object.keys(downloads).length}곡 저장됨</Text>
+        </View>
+        <View style={styles.usageBarTrack}>
+          <View style={[styles.usageBarFill, { width: `${Math.min(100, (usedMb / 500) * 100)}%` }]} />
+        </View>
+        <Pressable style={[styles.btn, styles.destructiveBtn]} onPress={clearCache}>
+          <Ionicons name="trash-outline" size={16} color={colors.onPrimary} />
+          <Text style={styles.btnText}>모두 삭제</Text>
         </Pressable>
-        <Pressable style={[styles.btn, styles.btnOutline]} onPress={onTest} disabled={testing}>
-          {testing ? <ActivityIndicator color={colors.primary} /> : <Text style={styles.btnOutlineText}>연결 테스트</Text>}
-        </Pressable>
-      </View>
-
-      <View style={styles.divider} />
-
-      <Text style={styles.sectionTitle}>저장 공간</Text>
-      <View style={styles.usageRow}>
-        <Ionicons name="phone-portrait-outline" size={18} color={colors.textSecondary} />
-        <Text style={styles.value}>
-          {(usedBytes / 1024 / 1024).toFixed(1)} MB · {Object.keys(downloads).length}곡 저장됨
-        </Text>
-      </View>
-      <Pressable style={[styles.btn, styles.destructiveBtn]} onPress={clearCache}>
-        <Ionicons name="trash-outline" size={16} color={colors.onPrimary} />
-        <Text style={styles.btnText}>모두 삭제</Text>
-      </Pressable>
+      </Card>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  content: { padding: 20, paddingBottom: 40 },
-  sectionTitle: { color: colors.textMuted, fontFamily: fonts.bold, fontSize: 12, letterSpacing: 0.5, marginBottom: 12 },
+  content: { padding: 16, paddingBottom: 40 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18, marginBottom: 10, paddingHorizontal: 2 },
+  sectionIcon: {
+    width: 22,
+    height: 22,
+    borderRadius: 7,
+    backgroundColor: colors.primaryTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sectionTitle: { color: colors.textSecondary, fontFamily: fonts.bold, fontSize: 13 },
+  sectionCard: { backgroundColor: colors.bg, marginHorizontal: 0, padding: 14 },
   field: { marginBottom: 14 },
   label: { color: colors.textSecondary, fontFamily: fonts.semiBold, fontSize: 12, marginBottom: 6 },
   inputWrap: {
@@ -148,7 +174,7 @@ const styles = StyleSheet.create({
   },
   inputIcon: { marginRight: 8 },
   input: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 14, paddingVertical: 12 },
-  row: { flexDirection: 'row', gap: 10, marginTop: 6 },
+  row: { flexDirection: 'row', gap: 10, marginTop: 2 },
   btn: {
     flexDirection: 'row',
     gap: 6,
@@ -161,10 +187,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   btnOutline: { backgroundColor: colors.bg, borderWidth: 1.5, borderColor: colors.primary },
-  destructiveBtn: { backgroundColor: colors.destructive, marginTop: 14, flex: undefined },
+  destructiveBtn: { backgroundColor: colors.destructive, marginTop: 4, flex: undefined },
   btnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
   btnOutlineText: { color: colors.primary, fontFamily: fonts.semiBold, fontSize: 14 },
-  divider: { height: 1, backgroundColor: colors.border, marginVertical: 28 },
-  usageRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
-  value: { color: colors.text, fontFamily: fonts.medium, fontSize: 14 },
+  usageCard: { gap: 12 },
+  usageTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  usageValue: { color: colors.text, fontFamily: fonts.extraBold, fontSize: 20 },
+  usageCount: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13 },
+  usageBarTrack: { height: 8, borderRadius: 4, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
+  usageBarFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
 });

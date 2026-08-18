@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
+import Card from '../components/Card';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -102,18 +103,21 @@ export default function SearchScreen() {
       <FlatList
         data={results}
         keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <TrackRow
-            track={item}
-            onPress={() => startDownload(item.id, item)}
-            right={
-              downloadingIds[item.id] ? (
-                <ActivityIndicator color={colors.primary} />
-              ) : (
-                <Ionicons name="download-outline" size={22} color={colors.primary} />
-              )
-            }
-          />
+          <Card tight>
+            <TrackRow
+              track={item}
+              onPress={() => startDownload(item.id, item)}
+              right={
+                downloadingIds[item.id] ? (
+                  <ActivityIndicator color={colors.primary} />
+                ) : (
+                  <Ionicons name="download-outline" size={22} color={colors.primary} />
+                )
+              }
+            />
+          </Card>
         )}
       />
     </View>
@@ -146,6 +150,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   searchBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
+  listContent: { paddingTop: 8, paddingBottom: 16 },
   emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
   emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
   emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },

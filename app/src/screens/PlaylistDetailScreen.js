@@ -8,6 +8,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import TrackActions from '../components/TrackActions';
+import Card from '../components/Card';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -67,6 +68,7 @@ export default function PlaylistDetailScreen({ route }) {
       <FlatList
         data={tracks}
         keyExtractor={(t) => t.id}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="musical-notes-outline" size={40} color={colors.textMuted} />
@@ -75,7 +77,7 @@ export default function PlaylistDetailScreen({ route }) {
           </View>
         }
         renderItem={({ item }) => (
-          <View>
+          <Card tight>
             <TrackRow track={item} onPress={() => play(item)} />
             <TrackActions
               downloaded={isDownloaded(item.id)}
@@ -85,7 +87,7 @@ export default function PlaylistDetailScreen({ route }) {
               onDelete={() => handleRemove(item)}
               deleteLabel="목록에서 제거"
             />
-          </View>
+          </Card>
         )}
       />
     </View>
@@ -94,6 +96,7 @@ export default function PlaylistDetailScreen({ route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  listContent: { paddingTop: 8, paddingBottom: 16 },
   emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
   emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
   emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },

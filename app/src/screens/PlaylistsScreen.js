@@ -4,6 +4,7 @@ import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'r
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { createApiClient } from '../api/client';
+import Card from '../components/Card';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -71,6 +72,7 @@ export default function PlaylistsScreen({ navigation }) {
       <FlatList
         data={playlists}
         keyExtractor={(p) => p.id}
+        contentContainerStyle={styles.listContent}
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="albums-outline" size={40} color={colors.textMuted} />
@@ -79,20 +81,22 @@ export default function PlaylistsScreen({ navigation }) {
           </View>
         }
         renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-            onPress={() => navigation.navigate('PlaylistDetail', { playlistId: item.id, name: item.name })}
-            onLongPress={() => remove(item)}
-          >
-            <View style={styles.rowIcon}>
-              <Ionicons name="albums" size={18} color={colors.primary} />
-            </View>
-            <View style={styles.rowText}>
-              <Text style={styles.name}>{item.name}</Text>
-              <Text style={styles.count}>{item.track_ids.length}곡</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-          </Pressable>
+          <Card tight style={styles.card}>
+            <Pressable
+              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              onPress={() => navigation.navigate('PlaylistDetail', { playlistId: item.id, name: item.name })}
+              onLongPress={() => remove(item)}
+            >
+              <View style={styles.rowIcon}>
+                <Ionicons name="albums" size={18} color={colors.primary} />
+              </View>
+              <View style={styles.rowText}>
+                <Text style={styles.name}>{item.name}</Text>
+                <Text style={styles.count}>{item.track_ids.length}곡</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </Pressable>
+          </Card>
         )}
       />
     </View>
@@ -114,14 +118,14 @@ const styles = StyleSheet.create({
   },
   createBtn: { backgroundColor: colors.primary, paddingHorizontal: 18, justifyContent: 'center', borderRadius: 12 },
   createBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
+  listContent: { paddingTop: 8, paddingBottom: 16 },
+  card: { backgroundColor: colors.bg },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderBottomColor: colors.border,
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   rowPressed: { backgroundColor: colors.surface },
   rowIcon: {

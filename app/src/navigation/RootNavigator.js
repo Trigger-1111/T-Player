@@ -2,7 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import SearchScreen from '../screens/SearchScreen';
@@ -79,12 +79,27 @@ function TabBarWithMiniPlayer(props) {
 }
 
 function MainTabs() {
+  // The previous fixed height (58) ignored the device's bottom safe-area
+  // inset, so on gesture-nav phones the tab bar sat right on top of the
+  // system back-gesture strip and taps landed on the OS gesture instead of
+  // our icons. Pad it out using the real inset so the tappable icons always
+  // clear that area, with a floor so three-button-nav phones still get a
+  // comfortably tall bar.
+  const insets = useSafeAreaInsets();
+  const tabBarHeight = 64 + Math.max(insets.bottom, 24);
+
   return (
     <Tab.Navigator
       tabBar={(props) => <TabBarWithMiniPlayer {...props} />}
       screenOptions={({ route }) => ({
         ...stackHeaderOptions,
-        tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border, height: 58, paddingBottom: 8, paddingTop: 6 },
+        tabBarStyle: {
+          backgroundColor: colors.bg,
+          borderTopColor: colors.border,
+          height: tabBarHeight,
+          paddingBottom: Math.max(insets.bottom, 24),
+          paddingTop: 10,
+        },
         tabBarLabelStyle: { fontFamily: fonts.semiBold, fontSize: 11 },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,

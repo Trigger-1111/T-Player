@@ -8,6 +8,7 @@ import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import TrackActions from '../components/TrackActions';
+import Card from '../components/Card';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -95,12 +96,30 @@ export default function LibraryScreen() {
     ]);
   };
 
+  const downloadedCount = tracks.filter((t) => isDownloaded(t.id)).length;
+
   return (
     <View style={styles.container}>
       <FlatList
         data={tracks}
         keyExtractor={(t) => t.id}
+        contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+        ListHeaderComponent={
+          tracks.length > 0 ? (
+            <View style={styles.statsRow}>
+              <View style={[styles.statCard, styles.statCardTint]}>
+                <Text style={styles.statValue}>{tracks.length}</Text>
+                <Text style={styles.statLabel}>전체 곡</Text>
+              </View>
+              <View style={[styles.statCard, styles.statCardInk]}>
+                <Ionicons name="phone-portrait" size={16} color={colors.onInk} style={{ marginBottom: 2 }} />
+                <Text style={[styles.statValue, styles.statValueInk]}>{downloadedCount}</Text>
+                <Text style={styles.statLabelInk}>폰에 저장됨</Text>
+              </View>
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons name="library-outline" size={40} color={colors.textMuted} />
@@ -109,7 +128,7 @@ export default function LibraryScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <View>
+          <Card tight>
             <TrackRow
               track={item}
               onPress={() => item.status === 'ready' && play(item)}
@@ -135,7 +154,7 @@ export default function LibraryScreen() {
                 onDelete={() => handleDelete(item)}
               />
             )}
-          </View>
+          </Card>
         )}
       />
       <AddToPlaylistModal
@@ -150,6 +169,15 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  listContent: { paddingTop: 8, paddingBottom: 16 },
+  statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 14, marginBottom: 14 },
+  statCard: { flex: 1, borderRadius: 16, padding: 14 },
+  statCardTint: { backgroundColor: colors.primaryTint },
+  statCardInk: { backgroundColor: colors.ink },
+  statValue: { color: colors.primary, fontFamily: fonts.extraBold, fontSize: 22 },
+  statValueInk: { color: colors.onInk },
+  statLabel: { color: colors.primaryPressed, fontFamily: fonts.semiBold, fontSize: 12, marginTop: 2 },
+  statLabelInk: { color: 'rgba(255,255,255,0.6)', fontFamily: fonts.semiBold, fontSize: 12, marginTop: 2 },
   emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
   emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
   emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },

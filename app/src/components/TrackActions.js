@@ -37,7 +37,16 @@ export default function TrackActions({
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 18, paddingHorizontal: 16, paddingBottom: 12, paddingTop: 2 },
+  row: {
+    flexDirection: 'row',
+    gap: 18,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    paddingTop: 10,
+    marginTop: 2,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+  },
   action: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   actionLabel: { fontFamily: fonts.semiBold, fontSize: 12 },
 });
