@@ -1,8 +1,10 @@
 import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio';
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 
 const PlayerContext = createContext(null);
+const STORAGE_KEY = 'dd-music:player-state';
 
 export function PlayerProvider({ children }) {
   const player = useAudioPlayer(null, { updateInterval: 500 });
@@ -13,6 +15,13 @@ export function PlayerProvider({ children }) {
   const [repeatMode, setRepeatMode] = useState('off'); // off | one | all
   const advancingRef = useRef(false);
   const loadTokenRef = useRef(0);
+  // Real music players (Spotify, Deezer, ...) keep the queue across a force
+  // quit / OS kill and resume paused where you left off - losing the queue
+  // on restart is a commonly reported complaint. Restore once on mount...
+  const restoredRef = useRef(false);
+  // ...then seek to the saved position once the restored track has loaded
+  // (seeking before the player reports isLoaded is a no-op).
+  const pendingSeekRef = useRef(null);
 
   useEffect(() => {
     setAudioModeAsync({
@@ -62,6 +71,58 @@ export function PlayerProvider({ children }) {
     },
     [player]
   );
+
+  // Restore the last queue/track/position on launch. Resumes paused (not
+  // autoplaying) - mirrors how Spotify/Apple Music come back after a kill.
+  useEffect(() => {
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (!saved.queue?.length || saved.currentIndex < 0) return;
+        setQueue(saved.queue);
+        setRepeatMode(saved.repeatMode || 'off');
+        pendingSeekRef.current = saved.positionSeconds || 0;
+        await loadTrack(saved.queue, saved.currentIndex, false);
+      } catch {
+        // corrupt or missing state - just start empty
+      } finally {
+        restoredRef.current = true;
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (pendingSeekRef.current != null && status.isLoaded) {
+      player.seekTo(pendingSeekRef.current);
+      pendingSeekRef.current = null;
+    }
+  }, [status.isLoaded, player]);
+
+  // Persist queue/current track/repeat mode whenever they change.
+  useEffect(() => {
+    if (!restoredRef.current) return; // don't overwrite storage while still restoring
+    AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ queue, currentIndex, repeatMode, positionSeconds: Math.floor(status.currentTime || 0) })
+    ).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queue, currentIndex, repeatMode]);
+
+  // Periodically checkpoint playback position while playing, so a force-kill
+  // mid-track resumes close to where it left off rather than from 0:00.
+  useEffect(() => {
+    if (!status.playing) return;
+    const id = setInterval(() => {
+      AsyncStorage.mergeItem(
+        STORAGE_KEY,
+        JSON.stringify({ positionSeconds: Math.floor(status.currentTime || 0) })
+      ).catch(() => {});
+    }, 5000);
+    return () => clearInterval(id);
+  }, [status.playing]);
 
   const loadIndex = useCallback((index, autoplay = true) => loadTrack(queue, index, autoplay), [queue, loadTrack]);
 
