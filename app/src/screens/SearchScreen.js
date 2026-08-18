@@ -1,20 +1,12 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  Pressable,
-  Alert,
-} from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { usePlayer } from '../context/PlayerContext';
 import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import Card from '../components/Card';
+import EmptyState from '../components/EmptyState';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -84,70 +76,71 @@ export default function SearchScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchBar}>
-        <View style={styles.inputWrap}>
-          <Ionicons name="search" size={18} color={colors.textMuted} style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="검색어 또는 유튜브 URL 입력"
-            placeholderTextColor={colors.placeholder}
-            value={query}
-            onChangeText={setQuery}
-            onSubmitEditing={runSearch}
-            returnKeyType="search"
-            autoCapitalize="none"
-          />
-        </View>
-        <Pressable style={styles.searchBtn} onPress={runSearch}>
-          <Text style={styles.searchBtnText}>{isUrl(query) ? '다운로드' : '검색'}</Text>
-        </Pressable>
-      </View>
-
-      {searching && <ActivityIndicator style={{ marginTop: 24 }} color={colors.primary} />}
-
-      {!searching && !searched && (
-        <View style={styles.emptyState}>
-          <Ionicons name="search" size={40} color={colors.textMuted} />
-          <Text style={styles.emptyTitle}>유튜브에서 찾아보세요</Text>
-          <Text style={styles.emptyBody}>곡을 탭하면 바로 미리듣기가 재생돼요. 다운로드 아이콘을 누르면 라이브러리에 저장돼요.</Text>
-        </View>
-      )}
-
-      {!searching && searched && results.length === 0 && (
-        <View style={styles.emptyState}>
-          <Ionicons name="sad-outline" size={40} color={colors.textMuted} />
-          <Text style={styles.emptyTitle}>검색 결과가 없어요</Text>
-        </View>
-      )}
-
-      <FlatList
-        data={results}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <Card tight>
-            <TrackRow
-              track={item}
-              onPress={() => preview(item)}
-              right={
-                savingIds[item.id] ? (
-                  <ActivityIndicator color={colors.primary} />
-                ) : (
-                  <Pressable onPress={() => saveToLibrary(item.id, item)} hitSlop={10}>
-                    <Ionicons name="download-outline" size={22} color={colors.primary} />
-                  </Pressable>
-                )
-              }
+      <Card tight style={styles.searchBarCard}>
+        <View style={styles.searchBar}>
+          <View style={styles.inputWrap}>
+            <Ionicons name="search" size={18} color={colors.textMuted} style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="검색어 또는 유튜브 URL 입력"
+              placeholderTextColor={colors.placeholder}
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={runSearch}
+              returnKeyType="search"
+              autoCapitalize="none"
             />
-          </Card>
+          </View>
+          <Pressable style={styles.searchBtn} onPress={runSearch}>
+            <Text style={styles.searchBtnText}>{isUrl(query) ? '다운로드' : '검색'}</Text>
+          </Pressable>
+        </View>
+      </Card>
+
+      <View style={styles.content}>
+        {searching ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : !searched ? (
+          <EmptyState
+            icon="search"
+            title="유튜브에서 찾아보세요"
+            body="곡을 탭하면 바로 미리듣기가 재생돼요. 다운로드 아이콘을 누르면 라이브러리에 저장돼요."
+          />
+        ) : results.length === 0 ? (
+          <EmptyState icon="sad-outline" title="검색 결과가 없어요" />
+        ) : (
+          <FlatList
+            data={results}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <Card tight>
+                <TrackRow
+                  track={item}
+                  onPress={() => preview(item)}
+                  right={
+                    savingIds[item.id] ? (
+                      <ActivityIndicator color={colors.primary} />
+                    ) : (
+                      <Pressable onPress={() => saveToLibrary(item.id, item)} hitSlop={10}>
+                        <Ionicons name="download-outline" size={22} color={colors.primary} />
+                      </Pressable>
+                    )
+                  }
+                />
+              </Card>
+            )}
+          />
         )}
-      />
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  searchBarCard: { backgroundColor: colors.bg, marginTop: 4 },
+  content: { flex: 1 },
   searchBar: { flexDirection: 'row', padding: 12, gap: 8 },
   inputWrap: {
     flex: 1,
@@ -173,7 +166,4 @@ const styles = StyleSheet.create({
   },
   searchBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
   listContent: { paddingTop: 8, paddingBottom: 16 },
-  emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
-  emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
-  emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },
 });

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -7,11 +7,58 @@ import { usePlayer } from '../context/PlayerContext';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
+const DISC_SIZE = 260;
+
 function formatTime(seconds) {
   if (!seconds && seconds !== 0) return '0:00';
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+// The rotating record. A single looping 0->1 timing that maps to 0->360deg -
+// since 360deg looks identical to 0deg, the loop restarting is seamless.
+// Stopping it (pause) just freezes the Animated.Value where it is; starting
+// again resumes from there rather than jumping back to 0.
+function SpinningDisc({ thumbnailUrl, spinning }) {
+  const spin = useRef(new Animated.Value(0)).current;
+  const loopRef = useRef(null);
+
+  useEffect(() => {
+    if (spinning) {
+      loopRef.current = Animated.loop(
+        Animated.timing(spin, {
+          toValue: 1,
+          duration: 9000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      );
+      loopRef.current.start();
+    } else {
+      loopRef.current?.stop();
+    }
+    return () => loopRef.current?.stop();
+  }, [spinning, spin]);
+
+  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
+
+  return (
+    <View style={styles.discShadowWrap}>
+      <Animated.View style={[styles.disc, { transform: [{ rotate }] }]}>
+        {thumbnailUrl ? (
+          <Image source={{ uri: thumbnailUrl }} style={styles.discArt} />
+        ) : (
+          <View style={[styles.discArt, styles.discArtFallback]}>
+            <Ionicons name="musical-notes" size={56} color={colors.primary} />
+          </View>
+        )}
+        <View style={styles.discRingOuter} pointerEvents="none" />
+        <View style={styles.discRingInner} pointerEvents="none" />
+        <View style={styles.discHole} />
+      </Animated.View>
+    </View>
+  );
 }
 
 export default function NowPlayingScreen({ navigation }) {
@@ -44,13 +91,7 @@ export default function NowPlayingScreen({ navigation }) {
       </View>
 
       <View style={styles.artworkWrap}>
-        {currentTrack.thumbnailUrl ? (
-          <Image source={{ uri: currentTrack.thumbnailUrl }} style={styles.artwork} />
-        ) : (
-          <View style={[styles.artwork, styles.artworkFallback]}>
-            <Ionicons name="musical-notes" size={64} color={colors.primary} />
-          </View>
-        )}
+        <SpinningDisc thumbnailUrl={currentTrack.thumbnailUrl} spinning={status.playing} />
       </View>
 
       <View style={styles.meta}>
@@ -114,17 +155,61 @@ const styles = StyleSheet.create({
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 },
   closeBtn: { width: 26, alignItems: 'center' },
   topBarLabel: { color: 'rgba(255,255,255,0.55)', fontFamily: fonts.semiBold, fontSize: 12, letterSpacing: 1 },
-  artworkWrap: { alignItems: 'center', marginTop: 32 },
-  artwork: { width: 280, height: 280, borderRadius: 16, backgroundColor: colors.inkAlt },
-  artworkFallback: { alignItems: 'center', justifyContent: 'center' },
-  meta: { marginTop: 32 },
+  artworkWrap: { alignItems: 'center', marginTop: 28 },
+  discShadowWrap: {
+    width: DISC_SIZE,
+    height: DISC_SIZE,
+    borderRadius: DISC_SIZE / 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.5,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 12,
+  },
+  disc: {
+    width: DISC_SIZE,
+    height: DISC_SIZE,
+    borderRadius: DISC_SIZE / 2,
+    backgroundColor: colors.inkAlt,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  discArt: { position: 'absolute', width: '100%', height: '100%' },
+  discArtFallback: { alignItems: 'center', justifyContent: 'center' },
+  discRingOuter: {
+    position: 'absolute',
+    width: '78%',
+    height: '78%',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+  },
+  discRingInner: {
+    position: 'absolute',
+    width: '40%',
+    height: '40%',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+  },
+  discHole: {
+    position: 'absolute',
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.ink,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.35)',
+  },
+  meta: { marginTop: 28 },
   title: { color: colors.onInk, fontFamily: fonts.extraBold, fontSize: 22, lineHeight: 28 },
   uploader: { color: 'rgba(255,255,255,0.55)', fontFamily: fonts.medium, fontSize: 14, marginTop: 6 },
-  sliderWrap: { marginTop: 28 },
+  sliderWrap: { marginTop: 24 },
   slider: { width: '100%', height: 32 },
   timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4 },
   time: { color: 'rgba(255,255,255,0.5)', fontFamily: fonts.medium, fontSize: 12 },
-  controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 36, paddingHorizontal: 4 },
+  controls: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 32, paddingHorizontal: 4 },
   playBtn: {
     width: 64,
     height: 64,

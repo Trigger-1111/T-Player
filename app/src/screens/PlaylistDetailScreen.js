@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Alert, FlatList, StyleSheet, View } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
 import { useDownloads } from '../context/DownloadsContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -9,8 +8,8 @@ import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import TrackActions from '../components/TrackActions';
 import Card from '../components/Card';
+import EmptyState from '../components/EmptyState';
 import { colors } from '../theme/colors';
-import { fonts } from '../theme/typography';
 
 export default function PlaylistDetailScreen({ route }) {
   const { playlistId, name } = route.params;
@@ -68,13 +67,9 @@ export default function PlaylistDetailScreen({ route }) {
       <FlatList
         data={tracks}
         keyExtractor={(t) => t.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, tracks.length === 0 && styles.listContentEmpty]}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="musical-notes-outline" size={40} color={colors.textMuted} />
-            <Text style={styles.emptyTitle}>이 플레이리스트에 곡이 없어요</Text>
-            <Text style={styles.emptyBody}>라이브러리에서 곡을 추가해보세요.</Text>
-          </View>
+          <EmptyState icon="musical-notes-outline" title="이 플레이리스트에 곡이 없어요" body="라이브러리에서 곡을 추가해보세요." />
         }
         renderItem={({ item }) => (
           <Card tight>
@@ -97,7 +92,5 @@ export default function PlaylistDetailScreen({ route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   listContent: { paddingTop: 8, paddingBottom: 16 },
-  emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
-  emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
-  emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },
+  listContentEmpty: { flexGrow: 1 },
 });

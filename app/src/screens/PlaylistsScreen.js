@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { createApiClient } from '../api/client';
 import Card from '../components/Card';
+import EmptyState from '../components/EmptyState';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -56,29 +57,27 @@ export default function PlaylistsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.newRow}>
-        <TextInput
-          style={styles.input}
-          placeholder="새 플레이리스트 이름"
-          placeholderTextColor={colors.placeholder}
-          value={newName}
-          onChangeText={setNewName}
-          onSubmitEditing={create}
-        />
-        <Pressable style={styles.createBtn} onPress={create}>
-          <Text style={styles.createBtnText}>만들기</Text>
-        </Pressable>
-      </View>
+      <Card tight style={styles.newRowCard}>
+        <View style={styles.newRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="새 플레이리스트 이름"
+            placeholderTextColor={colors.placeholder}
+            value={newName}
+            onChangeText={setNewName}
+            onSubmitEditing={create}
+          />
+          <Pressable style={styles.createBtn} onPress={create}>
+            <Text style={styles.createBtnText}>만들기</Text>
+          </Pressable>
+        </View>
+      </Card>
       <FlatList
         data={playlists}
         keyExtractor={(p) => p.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, playlists.length === 0 && styles.listContentEmpty]}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="albums-outline" size={40} color={colors.textMuted} />
-            <Text style={styles.emptyTitle}>플레이리스트가 없어요</Text>
-            <Text style={styles.emptyBody}>위에서 이름을 입력하고 만들어보세요.</Text>
-          </View>
+          <EmptyState icon="albums-outline" title="플레이리스트가 없어요" body="위에서 이름을 입력하고 만들어보세요." />
         }
         renderItem={({ item }) => (
           <Card tight style={styles.card}>
@@ -105,6 +104,7 @@ export default function PlaylistsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  newRowCard: { backgroundColor: colors.bg, marginTop: 4 },
   newRow: { flexDirection: 'row', gap: 8, padding: 12 },
   input: {
     flex: 1,
@@ -119,6 +119,7 @@ const styles = StyleSheet.create({
   createBtn: { backgroundColor: colors.primary, paddingHorizontal: 18, justifyContent: 'center', borderRadius: 12 },
   createBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
   listContent: { paddingTop: 8, paddingBottom: 16 },
+  listContentEmpty: { flexGrow: 1 },
   card: { backgroundColor: colors.bg },
   row: {
     flexDirection: 'row',
@@ -139,7 +140,4 @@ const styles = StyleSheet.create({
   rowText: { flex: 1 },
   name: { color: colors.text, fontFamily: fonts.semiBold, fontSize: 15 },
   count: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 12, marginTop: 2 },
-  emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
-  emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
-  emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },
 });

@@ -9,6 +9,7 @@ import TrackRow from '../components/TrackRow';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import TrackActions from '../components/TrackActions';
 import Card from '../components/Card';
+import EmptyState from '../components/EmptyState';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -103,7 +104,7 @@ export default function LibraryScreen() {
       <FlatList
         data={tracks}
         keyExtractor={(t) => t.id}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, tracks.length === 0 && styles.listContentEmpty]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         ListHeaderComponent={
           tracks.length > 0 ? (
@@ -121,11 +122,7 @@ export default function LibraryScreen() {
           ) : null
         }
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons name="library-outline" size={40} color={colors.textMuted} />
-            <Text style={styles.emptyTitle}>아직 다운로드한 곡이 없어요</Text>
-            <Text style={styles.emptyBody}>검색 탭에서 곡을 찾아 다운로드해보세요.</Text>
-          </View>
+          <EmptyState icon="library-outline" title="아직 다운로드한 곡이 없어요" body="검색 탭에서 곡을 찾아 다운로드해보세요." />
         }
         renderItem={({ item }) => (
           <Card tight>
@@ -170,6 +167,7 @@ export default function LibraryScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   listContent: { paddingTop: 8, paddingBottom: 16 },
+  listContentEmpty: { flexGrow: 1 },
   statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 14, marginBottom: 14 },
   statCard: { flex: 1, borderRadius: 16, padding: 14 },
   statCardTint: { backgroundColor: colors.primaryTint },
@@ -178,9 +176,6 @@ const styles = StyleSheet.create({
   statValueInk: { color: colors.onInk },
   statLabel: { color: colors.primaryPressed, fontFamily: fonts.semiBold, fontSize: 12, marginTop: 2 },
   statLabelInk: { color: 'rgba(255,255,255,0.6)', fontFamily: fonts.semiBold, fontSize: 12, marginTop: 2 },
-  emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
-  emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
-  emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },
   status: { color: colors.textSecondary, fontFamily: fonts.semiBold, fontSize: 12 },
   statusFailed: { color: colors.destructive },
 });

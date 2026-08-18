@@ -57,18 +57,15 @@ function TabIcon({ name, focused, color }) {
 }
 
 // Plain small header titles were part of why every screen's top felt flat -
-// a colored icon badge + a real "big title" treatment gives each tab an
-// identity instead of the same generic gray text bar everywhere.
+// a real "big title" treatment gives each tab an identity instead of the
+// same generic gray text bar everywhere. No icon here - it's the same icon
+// as the tab bar right below, and repeating it just felt redundant rather
+// than adding anything.
 function BigHeaderTitle({ routeName }) {
   return (
-    <View style={styles.headerTitleRow}>
-      <View style={styles.headerBadge}>
-        <Ionicons name={tabIconNames[routeName]} size={16} color={colors.primary} />
-      </View>
-      <View>
-        <Text style={styles.headerTitle}>{tabTitles[routeName]}</Text>
-        <Text style={styles.headerSubtitle}>{tabSubtitles[routeName]}</Text>
-      </View>
+    <View style={styles.headerTitleBlock}>
+      <Text style={styles.headerTitle}>{tabTitles[routeName]}</Text>
+      <Text style={styles.headerSubtitle}>{tabSubtitles[routeName]}</Text>
     </View>
   );
 }
@@ -169,15 +166,7 @@ export default function RootNavigator() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
-  headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 4 },
-  headerBadge: {
-    width: 34,
-    height: 34,
-    borderRadius: 11,
-    backgroundColor: colors.primaryTint,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: { color: colors.text, fontFamily: fonts.extraBold, fontSize: 20 },
-  headerSubtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 12, marginTop: 1 },
+  headerTitleBlock: { justifyContent: 'center' },
+  headerTitle: { color: colors.text, fontFamily: fonts.extraBold, fontSize: 22, lineHeight: 26 },
+  headerSubtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, marginTop: 2 },
 });
