@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { createApiClient } from '../api/client';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/typography';
 
 export default function PlaylistsScreen({ navigation }) {
   const { serverUrl, apiKey } = useSettings();
@@ -69,15 +71,27 @@ export default function PlaylistsScreen({ navigation }) {
       <FlatList
         data={playlists}
         keyExtractor={(p) => p.id}
-        ListEmptyComponent={<Text style={styles.empty}>플레이리스트가 없습니다.</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Ionicons name="albums-outline" size={40} color={colors.textMuted} />
+            <Text style={styles.emptyTitle}>플레이리스트가 없어요</Text>
+            <Text style={styles.emptyBody}>위에서 이름을 입력하고 만들어보세요.</Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <Pressable
-            style={styles.row}
+            style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
             onPress={() => navigation.navigate('PlaylistDetail', { playlistId: item.id, name: item.name })}
             onLongPress={() => remove(item)}
           >
-            <Text style={styles.name}>{item.name}</Text>
-            <Text style={styles.count}>{item.track_ids.length}곡</Text>
+            <View style={styles.rowIcon}>
+              <Ionicons name="albums" size={18} color={colors.primary} />
+            </View>
+            <View style={styles.rowText}>
+              <Text style={styles.name}>{item.name}</Text>
+              <Text style={styles.count}>{item.track_ids.length}곡</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </Pressable>
         )}
       />
@@ -88,18 +102,40 @@ export default function PlaylistsScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   newRow: { flexDirection: 'row', gap: 8, padding: 12 },
-  input: { flex: 1, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 12, borderRadius: 8 },
-  createBtn: { backgroundColor: colors.primary, paddingHorizontal: 16, justifyContent: 'center', borderRadius: 8 },
-  createBtnText: { color: colors.onPrimary, fontWeight: '600' },
+  input: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    color: colors.text,
+    fontFamily: fonts.medium,
+    fontSize: 15,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  createBtn: { backgroundColor: colors.primary, paddingHorizontal: 18, justifyContent: 'center', borderRadius: 12 },
+  createBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderBottomColor: colors.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  name: { color: colors.text, fontSize: 16 },
-  count: { color: colors.textSecondary },
-  empty: { color: colors.textSecondary, textAlign: 'center', marginTop: 40 },
+  rowPressed: { backgroundColor: colors.surface },
+  rowIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.primaryTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  rowText: { flex: 1 },
+  name: { color: colors.text, fontFamily: fonts.semiBold, fontSize: 15 },
+  count: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 12, marginTop: 2 },
+  emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
+  emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
+  emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },
 });

@@ -1,10 +1,24 @@
 import { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View, Pressable, ActivityIndicator } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput, View, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { Directory, File, Paths } from 'expo-file-system';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { useDownloads } from '../context/DownloadsContext';
 import { createApiClient } from '../api/client';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/typography';
+
+function Field({ icon, label, ...inputProps }) {
+  return (
+    <View style={styles.field}>
+      <Text style={styles.label}>{label}</Text>
+      <View style={styles.inputWrap}>
+        <Ionicons name={icon} size={16} color={colors.textMuted} style={styles.inputIcon} />
+        <TextInput style={styles.input} placeholderTextColor={colors.placeholder} {...inputProps} />
+      </View>
+    </View>
+  );
+}
 
 export default function SettingsScreen() {
   const { serverUrl, apiKey, save } = useSettings();
@@ -71,27 +85,25 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>서버 주소 (예: http://100.x.x.x:8000)</Text>
-      <TextInput
-        style={styles.input}
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <Text style={styles.sectionTitle}>서버 연결</Text>
+      <Field
+        icon="server-outline"
+        label="서버 주소"
         value={urlInput}
         onChangeText={setUrlInput}
         autoCapitalize="none"
         autoCorrect={false}
         placeholder="http://192.168.0.10:8000"
-        placeholderTextColor={colors.placeholder}
       />
-
-      <Text style={styles.label}>API 키</Text>
-      <TextInput
-        style={styles.input}
+      <Field
+        icon="key-outline"
+        label="API 키"
         value={keyInput}
         onChangeText={setKeyInput}
         autoCapitalize="none"
         autoCorrect={false}
         placeholder="서버 backend/.env 의 API_KEY 값"
-        placeholderTextColor={colors.placeholder}
         secureTextEntry
       />
 
@@ -106,31 +118,53 @@ export default function SettingsScreen() {
 
       <View style={styles.divider} />
 
-      <Text style={styles.label}>로컬 저장 용량</Text>
-      <Text style={styles.value}>{(usedBytes / 1024 / 1024).toFixed(1)} MB ({Object.keys(downloads).length}곡)</Text>
+      <Text style={styles.sectionTitle}>저장 공간</Text>
+      <View style={styles.usageRow}>
+        <Ionicons name="phone-portrait-outline" size={18} color={colors.textSecondary} />
+        <Text style={styles.value}>
+          {(usedBytes / 1024 / 1024).toFixed(1)} MB · {Object.keys(downloads).length}곡 저장됨
+        </Text>
+      </View>
       <Pressable style={[styles.btn, styles.destructiveBtn]} onPress={clearCache}>
+        <Ionicons name="trash-outline" size={16} color={colors.onPrimary} />
         <Text style={styles.btnText}>모두 삭제</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg, padding: 16 },
-  label: { color: colors.textSecondary, fontSize: 13, marginTop: 16, marginBottom: 6 },
-  input: {
+  container: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: 20, paddingBottom: 40 },
+  sectionTitle: { color: colors.textMuted, fontFamily: fonts.bold, fontSize: 12, letterSpacing: 0.5, marginBottom: 12 },
+  field: { marginBottom: 14 },
+  label: { color: colors.textSecondary, fontFamily: fonts.semiBold, fontSize: 12, marginBottom: 6 },
+  inputWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: colors.surface,
-    color: colors.text,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
   },
-  row: { flexDirection: 'row', gap: 8, marginTop: 16 },
-  btn: { backgroundColor: colors.primary, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, alignItems: 'center', flex: 1 },
+  inputIcon: { marginRight: 8 },
+  input: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 14, paddingVertical: 12 },
+  row: { flexDirection: 'row', gap: 10, marginTop: 6 },
+  btn: {
+    flexDirection: 'row',
+    gap: 6,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 13,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+  },
   btnOutline: { backgroundColor: colors.bg, borderWidth: 1.5, borderColor: colors.primary },
-  destructiveBtn: { backgroundColor: colors.destructive, marginTop: 12 },
-  btnText: { color: colors.onPrimary, fontWeight: '600' },
-  btnOutlineText: { color: colors.primary, fontWeight: '600' },
-  divider: { height: 1, backgroundColor: colors.border, marginVertical: 20 },
-  value: { color: colors.text, fontSize: 14 },
+  destructiveBtn: { backgroundColor: colors.destructive, marginTop: 14, flex: undefined },
+  btnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
+  btnOutlineText: { color: colors.primary, fontFamily: fonts.semiBold, fontSize: 14 },
+  divider: { height: 1, backgroundColor: colors.border, marginVertical: 28 },
+  usageRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 },
+  value: { color: colors.text, fontFamily: fonts.medium, fontSize: 14 },
 });

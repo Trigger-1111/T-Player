@@ -1,5 +1,16 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/typography';
+
+function Action({ icon, label, color = colors.primary, onPress }) {
+  return (
+    <Pressable style={styles.action} onPress={onPress} hitSlop={6}>
+      <Ionicons name={icon} size={15} color={color} />
+      <Text style={[styles.actionLabel, { color }]}>{label}</Text>
+    </Pressable>
+  );
+}
 
 export default function TrackActions({
   downloaded,
@@ -8,34 +19,25 @@ export default function TrackActions({
   onRemoveLocal,
   onAddToPlaylist,
   onDelete,
+  deleteLabel = '삭제',
 }) {
   return (
     <View style={styles.row}>
       {downloading ? (
         <ActivityIndicator color={colors.primary} size="small" />
       ) : downloaded ? (
-        <Pressable onPress={onRemoveLocal}>
-          <Text style={styles.action}>폰에서 삭제</Text>
-        </Pressable>
+        <Action icon="phone-portrait" label="폰에서 삭제" onPress={onRemoveLocal} />
       ) : (
-        <Pressable onPress={onSaveLocal}>
-          <Text style={styles.action}>폰에 저장</Text>
-        </Pressable>
+        <Action icon="download-outline" label="폰에 저장" onPress={onSaveLocal} />
       )}
-      {onAddToPlaylist && (
-        <Pressable onPress={onAddToPlaylist}>
-          <Text style={styles.action}>+ 플레이리스트</Text>
-        </Pressable>
-      )}
-      <Pressable onPress={onDelete}>
-        <Text style={[styles.action, styles.destructive]}>삭제</Text>
-      </Pressable>
+      {onAddToPlaylist && <Action icon="add-circle-outline" label="플레이리스트" onPress={onAddToPlaylist} />}
+      <Action icon="trash-outline" label={deleteLabel} color={colors.destructive} onPress={onDelete} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { flexDirection: 'row', gap: 16, paddingHorizontal: 12, paddingBottom: 10, paddingTop: 2 },
-  action: { color: colors.primary, fontSize: 12 },
-  destructive: { color: colors.destructive },
+  row: { flexDirection: 'row', gap: 18, paddingHorizontal: 16, paddingBottom: 12, paddingTop: 2 },
+  action: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  actionLabel: { fontFamily: fonts.semiBold, fontSize: 12 },
 });

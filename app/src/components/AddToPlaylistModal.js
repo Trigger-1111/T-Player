@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/typography';
 
 export default function AddToPlaylistModal({ visible, onClose, api, trackId }) {
   const [playlists, setPlaylists] = useState([]);
@@ -46,12 +48,14 @@ export default function AddToPlaylistModal({ visible, onClose, api, trackId }) {
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Pressable style={styles.sheet} onPress={(e) => e.stopPropagation()}>
+          <View style={styles.sheetHandle} />
           <Text style={styles.header}>플레이리스트에 추가</Text>
           <FlatList
             data={playlists}
             keyExtractor={(p) => p.id}
             renderItem={({ item }) => (
-              <Pressable style={styles.row} onPress={() => addTo(item.id)}>
+              <Pressable style={({ pressed }) => [styles.row, pressed && styles.rowPressed]} onPress={() => addTo(item.id)}>
+                <Ionicons name="albums" size={16} color={colors.primary} style={{ marginRight: 10 }} />
                 <Text style={styles.rowText}>{item.name}</Text>
                 <Text style={styles.rowCount}>{item.track_ids.length}곡</Text>
               </Pressable>
@@ -79,21 +83,32 @@ export default function AddToPlaylistModal({ visible, onClose, api, trackId }) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 16, borderTopRightRadius: 16, padding: 16, maxHeight: '70%' },
-  header: { color: colors.text, fontSize: 16, fontWeight: '600', marginBottom: 12 },
+  backdrop: { flex: 1, backgroundColor: 'rgba(23,19,15,0.55)', justifyContent: 'flex-end' },
+  sheet: { backgroundColor: colors.bg, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 16, paddingTop: 10, maxHeight: '70%' },
+  sheetHandle: { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: colors.border, marginBottom: 12 },
+  header: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginBottom: 8 },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 12,
     borderBottomColor: colors.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  rowText: { color: colors.text, fontSize: 15 },
-  rowCount: { color: colors.textSecondary, fontSize: 13 },
-  empty: { color: colors.textSecondary, paddingVertical: 12 },
+  rowPressed: { backgroundColor: colors.surface },
+  rowText: { flex: 1, color: colors.text, fontFamily: fonts.medium, fontSize: 15 },
+  rowCount: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13 },
+  empty: { color: colors.textSecondary, fontFamily: fonts.medium, paddingVertical: 12 },
   newRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  input: { flex: 1, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 12, borderRadius: 8 },
-  createBtn: { backgroundColor: colors.primary, paddingHorizontal: 12, justifyContent: 'center', borderRadius: 8 },
-  createBtnText: { color: colors.onPrimary, fontWeight: '600' },
+  input: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    color: colors.text,
+    fontFamily: fonts.medium,
+    fontSize: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  createBtn: { backgroundColor: colors.primary, paddingHorizontal: 14, justifyContent: 'center', borderRadius: 12 },
+  createBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 13 },
 });

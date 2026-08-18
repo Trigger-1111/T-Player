@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { useDownloads } from '../context/DownloadsContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -8,6 +9,7 @@ import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import TrackActions from '../components/TrackActions';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/typography';
 
 export default function PlaylistDetailScreen({ route }) {
   const { playlistId, name } = route.params;
@@ -65,7 +67,13 @@ export default function PlaylistDetailScreen({ route }) {
       <FlatList
         data={tracks}
         keyExtractor={(t) => t.id}
-        ListEmptyComponent={<Text style={styles.empty}>이 플레이리스트에 곡이 없습니다.</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Ionicons name="musical-notes-outline" size={40} color={colors.textMuted} />
+            <Text style={styles.emptyTitle}>이 플레이리스트에 곡이 없어요</Text>
+            <Text style={styles.emptyBody}>라이브러리에서 곡을 추가해보세요.</Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <View>
             <TrackRow track={item} onPress={() => play(item)} />
@@ -75,6 +83,7 @@ export default function PlaylistDetailScreen({ route }) {
               onSaveLocal={() => downloadTrack(item.id, api.trackFileUrl(item.id), api.authHeaders())}
               onRemoveLocal={() => removeLocalTrack(item.id)}
               onDelete={() => handleRemove(item)}
+              deleteLabel="목록에서 제거"
             />
           </View>
         )}
@@ -85,5 +94,7 @@ export default function PlaylistDetailScreen({ route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  empty: { color: colors.textSecondary, textAlign: 'center', marginTop: 40 },
+  emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
+  emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
+  emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },
 });

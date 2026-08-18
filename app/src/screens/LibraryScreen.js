@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { useDownloads } from '../context/DownloadsContext';
 import { usePlayer } from '../context/PlayerContext';
@@ -8,6 +9,7 @@ import TrackRow from '../components/TrackRow';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import TrackActions from '../components/TrackActions';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/typography';
 
 export default function LibraryScreen() {
   const { serverUrl, apiKey } = useSettings();
@@ -99,24 +101,28 @@ export default function LibraryScreen() {
         data={tracks}
         keyExtractor={(t) => t.id}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
-        ListEmptyComponent={<Text style={styles.empty}>아직 다운로드한 곡이 없습니다. 검색 탭에서 추가해보세요.</Text>}
+        ListEmptyComponent={
+          <View style={styles.emptyState}>
+            <Ionicons name="library-outline" size={40} color={colors.textMuted} />
+            <Text style={styles.emptyTitle}>아직 다운로드한 곡이 없어요</Text>
+            <Text style={styles.emptyBody}>검색 탭에서 곡을 찾아 다운로드해보세요.</Text>
+          </View>
+        }
         renderItem={({ item }) => (
           <View>
             <TrackRow
               track={item}
               onPress={() => item.status === 'ready' && play(item)}
               right={
-                <Text style={styles.status}>
-                  {item.status === 'downloading'
-                    ? `${Math.round(item.progress)}%`
-                    : item.status === 'pending'
-                    ? '대기중'
-                    : item.status === 'failed'
-                    ? '실패'
-                    : isDownloaded(item.id)
-                    ? '📱'
-                    : ''}
-                </Text>
+                item.status === 'downloading' ? (
+                  <Text style={styles.status}>{Math.round(item.progress)}%</Text>
+                ) : item.status === 'pending' ? (
+                  <Text style={styles.status}>대기중</Text>
+                ) : item.status === 'failed' ? (
+                  <Text style={[styles.status, styles.statusFailed]}>실패</Text>
+                ) : isDownloaded(item.id) ? (
+                  <Ionicons name="phone-portrait-outline" size={18} color={colors.primary} />
+                ) : null
               }
             />
             {item.status === 'ready' && (
@@ -144,6 +150,9 @@ export default function LibraryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  empty: { color: colors.textSecondary, textAlign: 'center', marginTop: 40 },
-  status: { color: colors.textSecondary, fontSize: 12 },
+  emptyState: { alignItems: 'center', paddingTop: 64, paddingHorizontal: 40, gap: 10 },
+  emptyTitle: { color: colors.text, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
+  emptyBody: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },
+  status: { color: colors.textSecondary, fontFamily: fonts.semiBold, fontSize: 12 },
+  statusFailed: { color: colors.destructive },
 });
