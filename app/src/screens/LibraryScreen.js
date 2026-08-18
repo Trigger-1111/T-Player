@@ -7,6 +7,7 @@ import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import TrackActions from '../components/TrackActions';
+import { colors } from '../theme/colors';
 
 export default function LibraryScreen() {
   const { serverUrl, apiKey } = useSettings();
@@ -97,7 +98,7 @@ export default function LibraryScreen() {
       <FlatList
         data={tracks}
         keyExtractor={(t) => t.id}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
         ListEmptyComponent={<Text style={styles.empty}>아직 다운로드한 곡이 없습니다. 검색 탭에서 추가해보세요.</Text>}
         renderItem={({ item }) => (
           <View>
@@ -142,7 +143,7 @@ export default function LibraryScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  empty: { color: '#999', textAlign: 'center', marginTop: 40 },
-  status: { color: '#999', fontSize: 12 },
+  container: { flex: 1, backgroundColor: colors.bg },
+  empty: { color: colors.textSecondary, textAlign: 'center', marginTop: 40 },
+  status: { color: colors.textSecondary, fontSize: 12 },
 });

@@ -7,6 +7,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import TrackActions from '../components/TrackActions';
+import { colors } from '../theme/colors';
 
 export default function PlaylistDetailScreen({ route }) {
   const { playlistId, name } = route.params;
@@ -83,6 +84,6 @@ export default function PlaylistDetailScreen({ route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
-  empty: { color: '#999', textAlign: 'center', marginTop: 40 },
+  container: { flex: 1, backgroundColor: colors.bg },
+  empty: { color: colors.textSecondary, textAlign: 'center', marginTop: 40 },
 });

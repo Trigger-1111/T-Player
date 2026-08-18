@@ -10,19 +10,20 @@ import PlaylistsScreen from '../screens/PlaylistsScreen';
 import PlaylistDetailScreen from '../screens/PlaylistDetailScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import MiniPlayer from '../components/MiniPlayer';
+import { colors } from '../theme/colors';
 
 const Tab = createBottomTabNavigator();
 const PlaylistStack = createNativeStackNavigator();
 
-const darkTheme = {
-  dark: true,
+const appTheme = {
+  dark: false,
   colors: {
-    primary: '#2f6fed',
-    background: '#000',
-    card: '#111113',
-    text: '#fff',
-    border: '#2c2c2e',
-    notification: '#2f6fed',
+    primary: colors.primary,
+    background: colors.bg,
+    card: colors.bg,
+    text: colors.text,
+    border: colors.border,
+    notification: colors.primary,
   },
   fonts: {},
 };
@@ -37,8 +38,8 @@ function PlaylistsStackNavigator() {
   return (
     <PlaylistStack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#111113' },
-        headerTintColor: '#fff',
+        headerStyle: { backgroundColor: colors.bg },
+        headerTintColor: colors.text,
       }}
     >
       <PlaylistStack.Screen name="PlaylistsHome" component={PlaylistsScreen} options={{ title: '플레이리스트' }} />
@@ -62,16 +63,16 @@ function TabBarWithMiniPlayer(props) {
 
 export default function RootNavigator() {
   return (
-    <NavigationContainer theme={darkTheme}>
+    <NavigationContainer theme={appTheme}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <Tab.Navigator
           tabBar={(props) => <TabBarWithMiniPlayer {...props} />}
           screenOptions={({ route }) => ({
-            headerStyle: { backgroundColor: '#111113' },
-            headerTintColor: '#fff',
-            tabBarStyle: { backgroundColor: '#111113', borderTopColor: '#2c2c2e' },
-            tabBarActiveTintColor: '#2f6fed',
-            tabBarInactiveTintColor: '#888',
+            headerStyle: { backgroundColor: colors.bg },
+            headerTintColor: colors.text,
+            tabBarStyle: { backgroundColor: colors.bg, borderTopColor: colors.border },
+            tabBarActiveTintColor: colors.primary,
+            tabBarInactiveTintColor: colors.textMuted,
             tabBarIcon: ({ focused }) => <TabIcon name={route.name} focused={focused} />,
           })}
         >
@@ -86,5 +87,5 @@ export default function RootNavigator() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#000' },
+  safeArea: { flex: 1, backgroundColor: colors.bg },
 });

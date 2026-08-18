@@ -1,5 +1,6 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { usePlayer } from '../context/PlayerContext';
+import { colors } from '../theme/colors';
 
 export default function MiniPlayer() {
   const { currentTrack, status, playPause, next, prev } = usePlayer();
@@ -40,14 +41,14 @@ export default function MiniPlayer() {
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: '#161618', borderTopColor: '#2c2c2e', borderTopWidth: StyleSheet.hairlineWidth },
-  progressBar: { height: 2, backgroundColor: '#2f6fed' },
+  container: { backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
+  progressBar: { height: 2, backgroundColor: colors.primary },
   content: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 8, gap: 10 },
-  thumb: { width: 36, height: 36, borderRadius: 4, backgroundColor: '#222' },
-  thumbFallback: { backgroundColor: '#333' },
+  thumb: { width: 36, height: 36, borderRadius: 4, backgroundColor: colors.surfaceAlt },
+  thumbFallback: { backgroundColor: colors.surfaceAlt },
   info: { flex: 1 },
-  title: { color: '#fff', fontSize: 13, fontWeight: '500' },
-  subtitle: { color: '#999', fontSize: 11 },
+  title: { color: colors.text, fontSize: 13, fontWeight: '500' },
+  subtitle: { color: colors.textSecondary, fontSize: 11 },
   ctrlBtn: { paddingHorizontal: 4 },
   ctrl: { fontSize: 20 },
 });

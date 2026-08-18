@@ -13,7 +13,7 @@ export default function App() {
         <DownloadsProvider>
           <PlayerProvider>
             <RootNavigator />
-            <StatusBar style="light" />
+            <StatusBar style="dark" />
           </PlayerProvider>
         </DownloadsProvider>
       </SettingsProvider>

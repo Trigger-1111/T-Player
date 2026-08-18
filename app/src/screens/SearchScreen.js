@@ -12,6 +12,7 @@ import {
 import { useSettings } from '../context/SettingsContext';
 import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
+import { colors } from '../theme/colors';
 
 export default function SearchScreen() {
   const { serverUrl, apiKey } = useSettings();
@@ -62,7 +63,7 @@ export default function SearchScreen() {
         <TextInput
           style={styles.input}
           placeholder="검색어 또는 유튜브 URL 입력"
-          placeholderTextColor="#777"
+          placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={runSearch}
@@ -74,7 +75,7 @@ export default function SearchScreen() {
         </Pressable>
       </View>
 
-      {searching && <ActivityIndicator style={{ marginTop: 20 }} color="#fff" />}
+      {searching && <ActivityIndicator style={{ marginTop: 20 }} color={colors.primary} />}
 
       <FlatList
         data={results}
@@ -85,7 +86,7 @@ export default function SearchScreen() {
             onPress={() => startDownload(item.id, item)}
             right={
               downloadingIds[item.id] ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.primary} />
               ) : (
                 <Text style={styles.downloadLabel}>⬇</Text>
               )
@@ -98,22 +99,22 @@ export default function SearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: colors.bg },
   searchBar: { flexDirection: 'row', padding: 12, gap: 8 },
   input: {
     flex: 1,
-    backgroundColor: '#1c1c1e',
-    color: '#fff',
+    backgroundColor: colors.surface,
+    color: colors.text,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 8,
   },
   searchBtn: {
-    backgroundColor: '#2f6fed',
+    backgroundColor: colors.primary,
     paddingHorizontal: 16,
     justifyContent: 'center',
     borderRadius: 8,
   },
-  searchBtnText: { color: '#fff', fontWeight: '600' },
-  downloadLabel: { color: '#2f6fed', fontSize: 20 },
+  searchBtnText: { color: colors.onPrimary, fontWeight: '600' },
+  downloadLabel: { color: colors.primary, fontSize: 20 },
 });

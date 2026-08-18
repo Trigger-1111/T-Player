@@ -1,4 +1,5 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../theme/colors';
 
 function formatDuration(seconds) {
   if (!seconds && seconds !== 0) return '';
@@ -36,9 +37,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap: 12,
   },
-  thumb: { width: 48, height: 48, borderRadius: 6, backgroundColor: '#222' },
-  thumbFallback: { backgroundColor: '#333' },
+  thumb: { width: 48, height: 48, borderRadius: 6, backgroundColor: colors.surface },
+  thumbFallback: { backgroundColor: colors.surfaceAlt },
   info: { flex: 1 },
-  title: { color: '#fff', fontSize: 15, fontWeight: '500' },
-  subtitle: { color: '#999', fontSize: 12, marginTop: 2 },
+  title: { color: colors.text, fontSize: 15, fontWeight: '500' },
+  subtitle: { color: colors.textSecondary, fontSize: 12, marginTop: 2 },
 });

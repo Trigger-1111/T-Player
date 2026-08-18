@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { colors } from '../theme/colors';
 
 export default function TrackActions({
   downloaded,
@@ -11,7 +12,7 @@ export default function TrackActions({
   return (
     <View style={styles.row}>
       {downloading ? (
-        <ActivityIndicator color="#fff" size="small" />
+        <ActivityIndicator color={colors.primary} size="small" />
       ) : downloaded ? (
         <Pressable onPress={onRemoveLocal}>
           <Text style={styles.action}>폰에서 삭제</Text>
@@ -35,6 +36,6 @@ export default function TrackActions({
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 16, paddingHorizontal: 12, paddingBottom: 10, paddingTop: 2 },
-  action: { color: '#2f6fed', fontSize: 12 },
-  destructive: { color: '#e5484d' },
+  action: { color: colors.primary, fontSize: 12 },
+  destructive: { color: colors.destructive },
 });

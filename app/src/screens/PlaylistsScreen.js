@@ -3,6 +3,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Alert, FlatList, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSettings } from '../context/SettingsContext';
 import { createApiClient } from '../api/client';
+import { colors } from '../theme/colors';
 
 export default function PlaylistsScreen({ navigation }) {
   const { serverUrl, apiKey } = useSettings();
@@ -56,7 +57,7 @@ export default function PlaylistsScreen({ navigation }) {
         <TextInput
           style={styles.input}
           placeholder="새 플레이리스트 이름"
-          placeholderTextColor="#777"
+          placeholderTextColor={colors.placeholder}
           value={newName}
           onChangeText={setNewName}
           onSubmitEditing={create}
@@ -85,20 +86,20 @@ export default function PlaylistsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: colors.bg },
   newRow: { flexDirection: 'row', gap: 8, padding: 12 },
-  input: { flex: 1, backgroundColor: '#1c1c1e', color: '#fff', paddingHorizontal: 12, borderRadius: 8 },
-  createBtn: { backgroundColor: '#2f6fed', paddingHorizontal: 16, justifyContent: 'center', borderRadius: 8 },
-  createBtnText: { color: '#fff', fontWeight: '600' },
+  input: { flex: 1, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 12, borderRadius: 8 },
+  createBtn: { backgroundColor: colors.primary, paddingHorizontal: 16, justifyContent: 'center', borderRadius: 8 },
+  createBtnText: { color: colors.onPrimary, fontWeight: '600' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 16,
-    borderBottomColor: '#1c1c1e',
+    borderBottomColor: colors.border,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  name: { color: '#fff', fontSize: 16 },
-  count: { color: '#999' },
-  empty: { color: '#999', textAlign: 'center', marginTop: 40 },
+  name: { color: colors.text, fontSize: 16 },
+  count: { color: colors.textSecondary },
+  empty: { color: colors.textSecondary, textAlign: 'center', marginTop: 40 },
 });
