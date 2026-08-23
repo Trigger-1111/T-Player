@@ -51,6 +51,12 @@ export function PlayerProvider({ children }) {
       if (!track) return;
       const token = ++loadTokenRef.current;
       setCurrentIndex(index);
+      // The UI (title/artist) switches to the new track immediately via
+      // setCurrentIndex above, but for a streamed track the actual audio
+      // swap waits on the preflight check below - without pausing here
+      // first, the *previous* track kept audibly playing for that whole
+      // stretch while the screen already showed the new one.
+      player.pause();
 
       if (track.source?.headers) {
         try {
