@@ -50,29 +50,11 @@ def api_search(q: str, limit: int = 15):
 # bytes rather than handing the URL to the phone (which would 403 from any
 # other network).
 #
-# The android_vr fallback format (see downloader.py's docstring) only ever
-# serves ~1,000,000 bytes starting from byte 0 of a given URL - confirmed by
-# hand, a non-zero start 403s even on a freshly re-resolved URL, so there's
-# no way to fetch further into the file once that budget is spent. We can't
-# do anything about that past the cap, but we can make hitting it look like
-# a clean end-of-stream instead of a playback error: the first request
-# (start=0) always forwards a capped window and surfaces a real error if
-# even that fails, while a later request landing past the cap gets 416
-# (Range Not Satisfiable) instead of propagating the upstream 403 - most
-# players treat that as "you've reached the end" rather than a hard failure.
-_PREVIEW_CHUNK_BYTES = 1_000_000
-
-
-def _range_start(range_header: str | None) -> int:
-    if not range_header:
-        return 0
-    try:
-        start = range_header.split("=", 1)[1].split("-", 1)[0]
-        return int(start) if start else 0
-    except (IndexError, ValueError):
-        return 0
-
-
+# mweb's audio-only stream (see downloader.py's docstring) turned out to
+# have no per-URL byte cap - confirmed by hand, arbitrary-offset Range
+# requests all succeed - so this just relays whatever Range the player
+# asked for (or the whole thing, if it didn't send one) with no special
+# chunking trick needed.
 @app.get("/api/preview/{video_id}", dependencies=[Depends(require_api_key)])
 async def api_preview(video_id: str, request: Request):
     try:
@@ -80,8 +62,10 @@ async def api_preview(video_id: str, request: Request):
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=502, detail=f"preview resolve failed: {exc}") from exc
 
-    start = _range_start(request.headers.get("range"))
-    fwd_headers = {**upstream_headers, "Range": f"bytes={start}-{start + _PREVIEW_CHUNK_BYTES - 1}"}
+    fwd_headers = dict(upstream_headers)
+    range_header = request.headers.get("range")
+    if range_header:
+        fwd_headers["Range"] = range_header
 
     client = httpx.AsyncClient(timeout=30.0, follow_redirects=True)
     try:
@@ -94,9 +78,6 @@ async def api_preview(video_id: str, request: Request):
     if upstream.status_code >= 400:
         await upstream.aclose()
         await client.aclose()
-        if start > 0:
-            # Likely the ~1MB cap, not a real error - see comment above.
-            raise HTTPException(status_code=416, detail="no more preview data available")
         raise HTTPException(status_code=502, detail=f"upstream returned {upstream.status_code}")
 
     async def relay():

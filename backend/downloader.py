@@ -17,16 +17,23 @@ Client choice matters too, and each has its own catch:
   - web_safari offers HLS (m3u8), which has no per-URL size limit but is
     only muxed video+audio, and is missing entirely for some videos
     (format-not-available, seen in practice on a real search result).
-  - android_vr reliably offers clean https, audio-only AAC (m4a) - but
-    confirmed by hand that a resolved android_vr URL only serves ~1,000,000
-    bytes total, and only from a request starting at byte 0; anything past
-    that (or a non-zero start, even on a freshly re-resolved URL) 403s. Full
-    songs are usually well over that, so this client is preview-only in
-    practice, not a real download source.
+  - android_vr used to be the audio-only fallback here, but as of the
+    yt-dlp 2026.8.19 client-side update it requires a GVS PO token that
+    bgutil doesn't mint for it at all (silently skips those formats), and
+    even before that update a resolved android_vr URL only ever served
+    ~1,000,000 bytes total starting from byte 0 - confirmed by hand.
+    Dropped in favor of mweb below.
+  - mweb *does* get a real, video-ID-bound PO token from bgutil, and
+    confirmed by hand that its audio-only https formats have no such cap -
+    arbitrary-offset Range requests all succeed, full files download
+    cleanly. This is what actually unblocked videos with no HLS from any
+    client (a real, reproduced case, not hypothetical - some videos,
+    often niche cover songs, don't offer HLS to anonymous clients at all,
+    quite possibly a Content-ID side effect though that's unconfirmed).
 We ask for both clients so yt-dlp can combine their formats and the selector
-below can prefer HLS (unbounded) over the android_vr audio-only stream
-(better quality/smaller size, but capped) - falling back to the capped
-stream only for videos where HLS genuinely isn't offered by anything.
+below can prefer HLS (best quality, no reassembly needed on our end) over
+mweb's audio-only stream, falling back to mweb only for videos where HLS
+genuinely isn't offered by anything.
 """
 import os
 import time
@@ -44,32 +51,25 @@ DENO_PATH = str(Path.home() / ".deno" / "bin" / "deno")
 _YOUTUBE_AUTH_OPTS = {
     "js_runtimes": {"deno": {"path": DENO_PATH}},
     "remote_components": ["ejs:github"],
-    "extractor_args": {"youtube": {"player_client": ["web_safari", "android_vr"]}},
+    "extractor_args": {"youtube": {"player_client": ["web_safari", "mweb"]}},
     # If cookies.txt is present, this lets yt-dlp make requests as a logged-in
     # session - the anonymous-client ~1MB download cap (see below) may not
     # apply to an authenticated one. No-op if the file doesn't exist.
     **({"cookiefile": str(COOKIES_PATH)} if COOKIES_PATH.exists() else {}),
 }
 
-# Two different selectors because the two call sites can't accept the same
-# tradeoffs:
-#
-# Downloads go through yt-dlp's own downloader, which reassembles HLS
-# natively - so prefer HLS first (no size cap, works for a full save),
-# falling back to the capped android_vr audio-only stream, then anything
-# else, for the rare video with no HLS from either client.
+# Same selector for both call sites now that mweb's audio-only stream has
+# turned out to be uncapped (unlike android_vr before it) - prefer HLS when
+# a video offers it (yt-dlp's own downloader reassembles it natively, and
+# it's typically the best quality), otherwise fall back to mweb's real
+# audio-only AAC/m4a, which main.py's preview proxy can also Range-seek
+# into freely since it's a plain progressive https URL, not an HLS
+# manifest (which would just be a list of further URLs, not audio bytes).
 _DOWNLOAD_FORMAT = (
     "bestaudio[protocol^=m3u8]/best[protocol^=m3u8][acodec!=none]"
     "/bestaudio[acodec^=mp4a][protocol=https]/bestaudio[protocol=https]"
     "/best[protocol=https][acodec!=none]/18"
 )
-
-# Preview is proxied by hand (main.py just relays raw bytes with Range
-# support - see api_preview) - it can't do anything with an HLS URL, that
-# resolves to a manifest listing more URLs, not audio bytes. So it has to
-# stay on a genuinely progressive stream, which in practice means the
-# capped android_vr audio-only format: fine for a preview, since the ~1MB
-# limit (see api_preview's comment) works out to roughly a minute of audio.
 _PREVIEW_FORMAT = "bestaudio[acodec^=mp4a][protocol=https]/bestaudio[protocol=https]/best[protocol=https][acodec!=none]/18"
 
 
