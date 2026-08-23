@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { createApiClient } from '../api/client';
 import EmptyState from '../components/EmptyState';
+import BrandHeader from '../components/BrandHeader';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -56,6 +57,7 @@ export default function PlaylistsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <BrandHeader />
       <View style={styles.newRow}>
         <TextInput
           style={styles.input}

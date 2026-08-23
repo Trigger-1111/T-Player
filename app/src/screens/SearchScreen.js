@@ -6,6 +6,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import EmptyState from '../components/EmptyState';
+import BrandHeader from '../components/BrandHeader';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -107,6 +108,7 @@ export default function SearchScreen() {
 
   return (
     <View style={styles.container}>
+      <BrandHeader />
       <View style={styles.searchBar}>
         <View style={styles.inputWrap}>
           <Ionicons name="search" size={18} color={colors.textMuted} style={styles.inputIcon} />
@@ -201,7 +203,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: 12,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
   inputIcon: { marginRight: 6 },
   input: {

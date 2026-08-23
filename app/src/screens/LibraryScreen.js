@@ -9,6 +9,7 @@ import TrackRow from '../components/TrackRow';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import TrackActions from '../components/TrackActions';
 import EmptyState from '../components/EmptyState';
+import BrandHeader from '../components/BrandHeader';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -100,6 +101,7 @@ export default function LibraryScreen() {
 
   return (
     <View style={styles.container}>
+      <BrandHeader />
       <FlatList
         data={tracks}
         keyExtractor={(t) => t.id}

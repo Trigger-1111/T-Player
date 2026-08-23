@@ -1,7 +1,7 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator, BottomTabBar } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -49,13 +49,6 @@ function TabIcon({ name, focused, color }) {
   return <Ionicons name={focused ? iconName : `${iconName}-outline`} size={22} color={color} />;
 }
 
-// Compact brand bar on every screen instead of a big per-tab title - each
-// screen's own content (search bar, stat cards, etc.) already says what
-// tab you're on, so this just stays the same everywhere.
-function BrandHeaderTitle() {
-  return <Text style={styles.brandTitle}>T-Player</Text>;
-}
-
 const stackHeaderOptions = {
   headerStyle: { backgroundColor: colors.bg },
   headerShadowVisible: false,
@@ -67,11 +60,7 @@ const stackHeaderOptions = {
 function PlaylistsStackNavigator() {
   return (
     <PlaylistStack.Navigator screenOptions={stackHeaderOptions}>
-      <PlaylistStack.Screen
-        name="PlaylistsHome"
-        component={PlaylistsScreen}
-        options={{ headerTitle: () => <BrandHeaderTitle /> }}
-      />
+      <PlaylistStack.Screen name="PlaylistsHome" component={PlaylistsScreen} options={{ headerShown: false }} />
       <PlaylistStack.Screen
         name="PlaylistDetail"
         component={PlaylistDetailScreen}
@@ -105,7 +94,7 @@ function MainTabs() {
       tabBar={(props) => <TabBarWithMiniPlayer {...props} />}
       screenOptions={({ route }) => ({
         ...stackHeaderOptions,
-        headerTitle: () => <BrandHeaderTitle />,
+        headerShown: false,
         tabBarStyle: {
           backgroundColor: colors.bg,
           borderTopColor: colors.border,
@@ -146,5 +135,4 @@ export default function RootNavigator() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.bg },
-  brandTitle: { color: colors.primary, fontFamily: fonts.extraBold, fontSize: 18, letterSpacing: 0.3 },
 });

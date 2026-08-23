@@ -6,6 +6,7 @@ import { useSettings } from '../context/SettingsContext';
 import { useDownloads } from '../context/DownloadsContext';
 import { createApiClient } from '../api/client';
 import Card from '../components/Card';
+import BrandHeader from '../components/BrandHeader';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
@@ -99,7 +100,9 @@ export default function SettingsScreen() {
   const usedMb = usedBytes / 1024 / 1024;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
+      <BrandHeader />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       <SectionTitle icon="server-outline">서버 연결</SectionTitle>
       <Card style={styles.sectionCard}>
         <Field
@@ -145,12 +148,14 @@ export default function SettingsScreen() {
           <Text style={styles.btnText}>모두 삭제</Text>
         </Pressable>
       </Card>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
+  scroll: { flex: 1 },
   content: { padding: 16, paddingBottom: 40 },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18, marginBottom: 10, paddingHorizontal: 2 },
   sectionIcon: {
