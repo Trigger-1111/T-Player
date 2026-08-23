@@ -35,7 +35,7 @@ from pathlib import Path
 
 import yt_dlp
 
-from config import MEDIA_DIR, THUMBNAIL_DIR
+from config import COOKIES_PATH, MEDIA_DIR, THUMBNAIL_DIR
 from db import get_conn, now
 from models import SearchResult
 
@@ -45,6 +45,10 @@ _YOUTUBE_AUTH_OPTS = {
     "js_runtimes": {"deno": {"path": DENO_PATH}},
     "remote_components": ["ejs:github"],
     "extractor_args": {"youtube": {"player_client": ["web_safari", "android_vr"]}},
+    # If cookies.txt is present, this lets yt-dlp make requests as a logged-in
+    # session - the anonymous-client ~1MB download cap (see below) may not
+    # apply to an authenticated one. No-op if the file doesn't exist.
+    **({"cookiefile": str(COOKIES_PATH)} if COOKIES_PATH.exists() else {}),
 }
 
 # Two different selectors because the two call sites can't accept the same

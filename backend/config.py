@@ -12,6 +12,12 @@ load_dotenv(ENV_PATH)
 MEDIA_DIR = BASE_DIR / "media"
 THUMBNAIL_DIR = BASE_DIR / "thumbnails"
 DB_PATH = BASE_DIR / "library.db"
+# Optional: exported YouTube cookies (Netscape cookies.txt format), used to
+# get past the anonymous-client download cap for videos with no HLS formats.
+# Gitignored - never commit this, it's session-equivalent to being logged
+# into whatever account it came from. Absent by default; yt-dlp just runs
+# without auth if the file isn't here.
+COOKIES_PATH = BASE_DIR / "cookies.txt"
 
 MEDIA_DIR.mkdir(exist_ok=True)
 THUMBNAIL_DIR.mkdir(exist_ok=True)

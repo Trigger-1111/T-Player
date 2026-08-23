@@ -35,6 +35,8 @@ backend/.env
 backend/library.db
 backend/media/
 backend/thumbnails/
+# YouTube auth cookies (session-equivalent - never commit)
+backend/cookies.txt
 
 # --- misc ---
 .DS_Store
