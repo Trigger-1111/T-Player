@@ -19,7 +19,7 @@ export default function MiniPlayer() {
       <View style={styles.content}>
         <Pressable
           style={styles.tapArea}
-          onPress={() => navigation.getParent()?.navigate('NowPlaying')}
+          onPress={() => navigation.navigate('Playing')}
         >
           {currentTrack.thumbnailUrl ? (
             <Image source={{ uri: currentTrack.thumbnailUrl }} style={styles.thumb} />

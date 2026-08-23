@@ -40,6 +40,7 @@ const appTheme = {
 const tabIconNames = {
   Search: 'search',
   Library: 'musical-notes',
+  Playing: 'disc',
   Playlists: 'albums',
   Settings: 'settings',
 };
@@ -71,9 +72,13 @@ function PlaylistsStackNavigator() {
 }
 
 function TabBarWithMiniPlayer(props) {
+  // Hide the mini player while already on the full Playing tab - showing
+  // both at once is a redundant, slightly silly-looking duplicate of the
+  // same "what's playing" info.
+  const activeRoute = props.state.routeNames[props.state.index];
   return (
     <View>
-      <MiniPlayer />
+      {activeRoute !== 'Playing' && <MiniPlayer />}
       <BottomTabBar {...props} />
     </View>
   );
@@ -110,6 +115,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Search" component={SearchScreen} options={{ title: '검색' }} />
       <Tab.Screen name="Library" component={LibraryScreen} options={{ title: '라이브러리' }} />
+      <Tab.Screen name="Playing" component={NowPlayingScreen} options={{ title: '재생' }} />
       <Tab.Screen name="Playlists" component={PlaylistsStackNavigator} options={{ title: '플레이리스트', headerShown: false }} />
       <Tab.Screen name="Settings" component={SettingsScreen} options={{ title: '설정' }} />
     </Tab.Navigator>
@@ -122,11 +128,6 @@ export default function RootNavigator() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <RootStack.Navigator screenOptions={{ headerShown: false }}>
           <RootStack.Screen name="MainTabs" component={MainTabs} />
-          <RootStack.Screen
-            name="NowPlaying"
-            component={NowPlayingScreen}
-            options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
-          />
         </RootStack.Navigator>
       </SafeAreaView>
     </NavigationContainer>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View, Pressable, ActivityIndicator, ScrollView } from 'react-native';
 import { Directory, File, Paths } from 'expo-file-system';
+import { getFreeDiskStorageAsync } from 'expo-file-system/legacy';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
 import { useDownloads } from '../context/DownloadsContext';
@@ -41,6 +42,10 @@ export default function SettingsScreen() {
   const [keyInput, setKeyInput] = useState(apiKey);
   const [testing, setTesting] = useState(false);
   const [usedBytes, setUsedBytes] = useState(0);
+  // The usage bar used to compare against a hardcoded 500MB that was never
+  // shown anywhere - meaningless, since it had nothing to do with what's
+  // actually on the phone. This is the device's real free space instead.
+  const [freeBytes, setFreeBytes] = useState(null);
 
   useEffect(() => {
     setUrlInput(serverUrl);
@@ -49,6 +54,7 @@ export default function SettingsScreen() {
 
   useEffect(() => {
     computeUsage();
+    getFreeDiskStorageAsync().then(setFreeBytes).catch(() => setFreeBytes(null));
   }, [downloads]);
 
   const computeUsage = () => {
@@ -98,6 +104,11 @@ export default function SettingsScreen() {
   };
 
   const usedMb = usedBytes / 1024 / 1024;
+  const freeGb = freeBytes != null ? freeBytes / 1024 / 1024 / 1024 : null;
+  // % of (used + still-free) space this app's downloads take up - not % of
+  // total device storage, since we have no reliable way to get that back
+  // out once it's been spent on the OS/other apps.
+  const usagePct = freeBytes != null && usedBytes + freeBytes > 0 ? (usedBytes / (usedBytes + freeBytes)) * 100 : 0;
 
   return (
     <View style={styles.container}>
@@ -141,8 +152,11 @@ export default function SettingsScreen() {
           <Text style={styles.usageCount}>{Object.keys(downloads).length}곡 저장됨</Text>
         </View>
         <View style={styles.usageBarTrack}>
-          <View style={[styles.usageBarFill, { width: `${Math.min(100, (usedMb / 500) * 100)}%` }]} />
+          <View style={[styles.usageBarFill, { width: `${Math.min(100, usagePct)}%` }]} />
         </View>
+        <Text style={styles.usageFree}>
+          {freeGb != null ? `폰 여유 공간 ${freeGb.toFixed(1)} GB` : '여유 공간 확인 중...'}
+        </Text>
         <Pressable style={[styles.btn, styles.destructiveBtn]} onPress={clearCache}>
           <Ionicons name="trash-outline" size={16} color={colors.onPrimary} />
           <Text style={styles.btnText}>모두 삭제</Text>
@@ -201,4 +215,5 @@ const styles = StyleSheet.create({
   usageCount: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13 },
   usageBarTrack: { height: 8, borderRadius: 4, backgroundColor: colors.surfaceAlt, overflow: 'hidden' },
   usageBarFill: { height: '100%', backgroundColor: colors.primary, borderRadius: 4 },
+  usageFree: { color: colors.textMuted, fontFamily: fonts.medium, fontSize: 12, marginTop: -4 },
 });

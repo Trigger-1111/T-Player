@@ -84,7 +84,7 @@ function LyricsPanel() {
   );
 }
 
-export default function NowPlayingScreen({ navigation }) {
+export default function NowPlayingScreen() {
   const { currentTrack, status, playPause, next, prev, seekTo, repeatMode, cycleRepeat } = usePlayer();
 
   // Tapping the disc flips this area over to a lyrics view and back -
@@ -101,8 +101,23 @@ export default function NowPlayingScreen({ navigation }) {
   }, [status.currentTime, scrubbing]);
 
   if (!currentTrack) {
-    navigation.goBack();
-    return null;
+    // This is a regular tab now (not a dismissable modal pushed only while
+    // something's playing), so it needs its own idle state instead of just
+    // bouncing back to whatever screen was open before.
+    return (
+      <LinearGradient colors={[colors.inkAlt, colors.ink]} style={styles.gradient}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+          <View style={styles.topBar}>
+            <Text style={styles.topBarLabel}>재생 중</Text>
+          </View>
+          <View style={styles.emptyState}>
+            <Ionicons name="disc-outline" size={48} color="rgba(255,255,255,0.3)" />
+            <Text style={styles.emptyTitle}>재생 중인 곡이 없어요</Text>
+            <Text style={styles.emptyBody}>검색이나 라이브러리에서 곡을 눌러 재생해보세요.</Text>
+          </View>
+        </SafeAreaView>
+      </LinearGradient>
+    );
   }
 
   const duration = status.duration || 0;
@@ -111,11 +126,7 @@ export default function NowPlayingScreen({ navigation }) {
     <LinearGradient colors={[colors.inkAlt, colors.ink]} style={styles.gradient}>
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.topBar}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.closeBtn}>
-          <Ionicons name="chevron-down" size={26} color={colors.onInk} />
-        </Pressable>
         <Text style={styles.topBarLabel}>재생 중</Text>
-        <View style={styles.closeBtn} />
       </View>
 
       <Pressable style={styles.artworkWrap} onPress={() => setShowLyrics((v) => !v)}>
@@ -192,9 +203,11 @@ export default function NowPlayingScreen({ navigation }) {
 const styles = StyleSheet.create({
   gradient: { flex: 1 },
   container: { flex: 1, paddingHorizontal: 24 },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 },
-  closeBtn: { width: 26, alignItems: 'center' },
+  topBar: { alignItems: 'center', paddingTop: 8 },
   topBarLabel: { color: 'rgba(255,255,255,0.55)', fontFamily: fonts.semiBold, fontSize: 12, letterSpacing: 1 },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 40 },
+  emptyTitle: { color: colors.onInk, fontFamily: fonts.bold, fontSize: 16, marginTop: 4 },
+  emptyBody: { color: 'rgba(255,255,255,0.5)', fontFamily: fonts.medium, fontSize: 13, textAlign: 'center', lineHeight: 19 },
   artworkWrap: { alignItems: 'center', marginTop: 16 },
   discShadowWrap: {
     width: DISC_SIZE,
