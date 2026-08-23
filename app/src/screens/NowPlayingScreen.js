@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Slider from '@react-native-community/slider';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { usePlayer } from '../context/PlayerContext';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
 
-const DISC_SIZE = 200;
+const DISC_SIZE = 216;
 
 function formatTime(seconds) {
   if (!seconds && seconds !== 0) return '0:00';
@@ -81,6 +82,7 @@ export default function NowPlayingScreen({ navigation }) {
   const duration = status.duration || 0;
 
   return (
+    <LinearGradient colors={[colors.inkAlt, colors.ink]} style={styles.gradient}>
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.topBar}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={12} style={styles.closeBtn}>
@@ -155,11 +157,13 @@ export default function NowPlayingScreen({ navigation }) {
         <View style={{ width: 24 }} />
       </View>
     </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.ink, paddingHorizontal: 24 },
+  gradient: { flex: 1 },
+  container: { flex: 1, paddingHorizontal: 24 },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 8 },
   closeBtn: { width: 26, alignItems: 'center' },
   topBarLabel: { color: 'rgba(255,255,255,0.55)', fontFamily: fonts.semiBold, fontSize: 12, letterSpacing: 1 },

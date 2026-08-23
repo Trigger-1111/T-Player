@@ -7,7 +7,6 @@ import { usePlayer } from '../context/PlayerContext';
 import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import TrackActions from '../components/TrackActions';
-import Card from '../components/Card';
 import EmptyState from '../components/EmptyState';
 import { colors } from '../theme/colors';
 
@@ -72,7 +71,7 @@ export default function PlaylistDetailScreen({ route }) {
           <EmptyState icon="musical-notes-outline" title="이 플레이리스트에 곡이 없어요" body="라이브러리에서 곡을 추가해보세요." />
         }
         renderItem={({ item }) => (
-          <Card tight>
+          <View>
             <TrackRow track={item} onPress={() => play(item)} />
             <TrackActions
               downloaded={isDownloaded(item.id)}
@@ -82,8 +81,9 @@ export default function PlaylistDetailScreen({ route }) {
               onDelete={() => handleRemove(item)}
               deleteLabel="목록에서 제거"
             />
-          </Card>
+          </View>
         )}
+        ItemSeparatorComponent={() => <View style={styles.divider} />}
       />
     </View>
   );
@@ -93,4 +93,5 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   listContent: { paddingTop: 8, paddingBottom: 16 },
   listContentEmpty: { flexGrow: 1 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 84 },
 });

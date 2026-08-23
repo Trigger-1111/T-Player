@@ -8,7 +8,6 @@ import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
 import AddToPlaylistModal from '../components/AddToPlaylistModal';
 import TrackActions from '../components/TrackActions';
-import Card from '../components/Card';
 import EmptyState from '../components/EmptyState';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
@@ -125,7 +124,7 @@ export default function LibraryScreen() {
           <EmptyState icon="library-outline" title="아직 다운로드한 곡이 없어요" body="검색 탭에서 곡을 찾아 다운로드해보세요." />
         }
         renderItem={({ item }) => (
-          <Card tight>
+          <View>
             <TrackRow
               track={item}
               onPress={() => item.status === 'ready' && play(item)}
@@ -151,8 +150,9 @@ export default function LibraryScreen() {
                 onDelete={() => handleDelete(item)}
               />
             )}
-          </Card>
+          </View>
         )}
+        ItemSeparatorComponent={() => <View style={styles.divider} />}
       />
       <AddToPlaylistModal
         visible={!!playlistModalFor}
@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
   listContent: { paddingTop: 8, paddingBottom: 16 },
   listContentEmpty: { flexGrow: 1 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 84 },
   statsRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 14, marginBottom: 14 },
   statCard: { flex: 1, borderRadius: 16, padding: 14 },
   statCardTint: { backgroundColor: colors.primaryTint },

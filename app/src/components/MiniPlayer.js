@@ -52,14 +52,23 @@ export default function MiniPlayer() {
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
+  container: {
+    backgroundColor: colors.bg,
+    borderTopColor: colors.border,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: -2 },
+    elevation: 6,
+  },
   progressBar: { height: 2, backgroundColor: colors.primary },
   content: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 8, gap: 10 },
   tapArea: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  thumb: { width: 36, height: 36, borderRadius: 4, backgroundColor: colors.surfaceAlt },
+  thumb: { width: 42, height: 42, borderRadius: 5, backgroundColor: colors.surface },
   thumbFallback: { alignItems: 'center', justifyContent: 'center' },
   info: { flex: 1 },
-  title: { color: colors.text, fontFamily: fonts.semiBold, fontSize: 13 },
-  subtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 11, marginTop: 1 },
-  ctrlBtn: { paddingHorizontal: 4 },
+  title: { color: colors.text, fontFamily: fonts.bold, fontSize: 13.5 },
+  subtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 11.5, marginTop: 1 },
+  ctrlBtn: { paddingHorizontal: 5 },
 });

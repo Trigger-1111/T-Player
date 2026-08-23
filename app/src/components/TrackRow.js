@@ -10,6 +10,9 @@ function formatDuration(seconds) {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
+// Flat list row (no bordered/shadowed card around it) - real music apps
+// (Spotify, Apple Music, YouTube Music) rely on a large thumbnail + clear
+// type hierarchy for visual rhythm, not a box around every single row.
 export default function TrackRow({ track, onPress, left, right }) {
   return (
     <Pressable style={({ pressed }) => [styles.row, pressed && styles.rowPressed]} onPress={onPress}>
@@ -18,7 +21,7 @@ export default function TrackRow({ track, onPress, left, right }) {
         <Image source={{ uri: track.thumbnail_url || track.thumbnailUrl }} style={styles.thumb} />
       ) : (
         <View style={[styles.thumb, styles.thumbFallback]}>
-          <Ionicons name="musical-notes" size={18} color={colors.primary} />
+          <Ionicons name="musical-notes" size={20} color={colors.primary} />
         </View>
       )}
       <View style={styles.info}>
@@ -38,14 +41,14 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 9,
+    paddingVertical: 8,
     paddingHorizontal: 16,
     gap: 12,
   },
-  rowPressed: { backgroundColor: colors.surfaceAlt },
-  thumb: { width: 46, height: 46, borderRadius: 8, backgroundColor: colors.surfaceAlt },
+  rowPressed: { backgroundColor: colors.surface },
+  thumb: { width: 56, height: 56, borderRadius: 6, backgroundColor: colors.surface },
   thumbFallback: { alignItems: 'center', justifyContent: 'center' },
-  info: { flex: 1 },
-  title: { color: colors.text, fontFamily: fonts.semiBold, fontSize: 15 },
-  subtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 12, marginTop: 2 },
+  info: { flex: 1, minWidth: 0 },
+  title: { color: colors.text, fontFamily: fonts.bold, fontSize: 15.5 },
+  subtitle: { color: colors.textSecondary, fontFamily: fonts.medium, fontSize: 13, marginTop: 3 },
 });

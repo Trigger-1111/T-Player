@@ -5,7 +5,6 @@ import { useSettings } from '../context/SettingsContext';
 import { usePlayer } from '../context/PlayerContext';
 import { createApiClient } from '../api/client';
 import TrackRow from '../components/TrackRow';
-import Card from '../components/Card';
 import EmptyState from '../components/EmptyState';
 import { colors } from '../theme/colors';
 import { fonts } from '../theme/typography';
@@ -108,26 +107,24 @@ export default function SearchScreen() {
 
   return (
     <View style={styles.container}>
-      <Card tight style={styles.searchBarCard}>
-        <View style={styles.searchBar}>
-          <View style={styles.inputWrap}>
-            <Ionicons name="search" size={18} color={colors.textMuted} style={styles.inputIcon} />
-            <TextInput
-              style={styles.input}
-              placeholder="검색어 또는 유튜브 URL 입력"
-              placeholderTextColor={colors.placeholder}
-              value={query}
-              onChangeText={setQuery}
-              onSubmitEditing={runSearch}
-              returnKeyType="search"
-              autoCapitalize="none"
-            />
-          </View>
-          <Pressable style={styles.searchBtn} onPress={runSearch}>
-            <Text style={styles.searchBtnText}>{isUrl(query) ? '다운로드' : '검색'}</Text>
-          </Pressable>
+      <View style={styles.searchBar}>
+        <View style={styles.inputWrap}>
+          <Ionicons name="search" size={18} color={colors.textMuted} style={styles.inputIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="검색어 또는 유튜브 URL 입력"
+            placeholderTextColor={colors.placeholder}
+            value={query}
+            onChangeText={setQuery}
+            onSubmitEditing={runSearch}
+            returnKeyType="search"
+            autoCapitalize="none"
+          />
         </View>
-      </Card>
+        <Pressable style={styles.searchBtn} onPress={runSearch}>
+          <Text style={styles.searchBtnText}>{isUrl(query) ? '다운로드' : '검색'}</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.content}>
         {searching ? (
@@ -149,32 +146,31 @@ export default function SearchScreen() {
               renderItem={({ item }) => {
                 const checked = !!selectedIds[item.id];
                 return (
-                  <Card tight>
-                    <TrackRow
-                      track={item}
-                      onPress={() => preview(item)}
-                      left={
-                        <Pressable onPress={() => toggleSelected(item.id)} hitSlop={10}>
-                          <Ionicons
-                            name={checked ? 'checkbox' : 'square-outline'}
-                            size={22}
-                            color={checked ? colors.primary : colors.textMuted}
-                          />
+                  <TrackRow
+                    track={item}
+                    onPress={() => preview(item)}
+                    left={
+                      <Pressable onPress={() => toggleSelected(item.id)} hitSlop={10}>
+                        <Ionicons
+                          name={checked ? 'checkbox' : 'square-outline'}
+                          size={22}
+                          color={checked ? colors.primary : colors.textMuted}
+                        />
+                      </Pressable>
+                    }
+                    right={
+                      savingIds[item.id] ? (
+                        <ActivityIndicator color={colors.primary} />
+                      ) : (
+                        <Pressable onPress={() => saveToLibrary(item.id, item)} hitSlop={10} style={styles.addBtn}>
+                          <Ionicons name="add" size={18} color={colors.onPrimary} />
                         </Pressable>
-                      }
-                      right={
-                        savingIds[item.id] ? (
-                          <ActivityIndicator color={colors.primary} />
-                        ) : (
-                          <Pressable onPress={() => saveToLibrary(item.id, item)} hitSlop={10} style={styles.addBtn}>
-                            <Ionicons name="add" size={18} color={colors.onPrimary} />
-                          </Pressable>
-                        )
-                      }
-                    />
-                  </Card>
+                      )
+                    }
+                  />
                 );
               }}
+              ItemSeparatorComponent={() => <View style={styles.divider} />}
             />
             {selectedCount > 0 && (
               <View style={styles.bulkBar}>
@@ -197,7 +193,6 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.bg },
-  searchBarCard: { backgroundColor: colors.bg, marginTop: 4 },
   content: { flex: 1 },
   searchBar: { flexDirection: 'row', padding: 12, gap: 8 },
   inputWrap: {
@@ -224,6 +219,7 @@ const styles = StyleSheet.create({
   },
   searchBtnText: { color: colors.onPrimary, fontFamily: fonts.semiBold, fontSize: 14 },
   listContent: { paddingTop: 8, paddingBottom: 16 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginLeft: 16 },
   addBtn: {
     width: 26,
     height: 26,
