@@ -62,8 +62,34 @@ function SpinningDisc({ thumbnailUrl, spinning }) {
   );
 }
 
+// Same footprint as the disc so tapping between the two doesn't shift the
+// rest of the layout. No real lyrics source is wired up yet - this is the
+// view it'll render into once one is.
+function LyricsPanel() {
+  return (
+    <View style={styles.lyricsPanel}>
+      <View style={styles.lyricsHeader}>
+        <Ionicons name="mic-outline" size={14} color="rgba(255,255,255,0.5)" />
+        <Text style={styles.lyricsHeaderText}>가사</Text>
+      </View>
+      <View style={styles.lyricsBody}>
+        <Ionicons name="musical-notes-outline" size={28} color="rgba(255,255,255,0.25)" />
+        <Text style={styles.lyricsPlaceholder}>가사는 아직 준비 중이에요.</Text>
+      </View>
+      <View style={styles.lyricsHint}>
+        <Ionicons name="disc-outline" size={12} color="rgba(255,255,255,0.55)" />
+        <Text style={styles.lyricsHintText}>탭하면 앨범아트로</Text>
+      </View>
+    </View>
+  );
+}
+
 export default function NowPlayingScreen({ navigation }) {
   const { currentTrack, status, playPause, next, prev, seekTo, repeatMode, cycleRepeat } = usePlayer();
+
+  // Tapping the disc flips this area over to a lyrics view and back -
+  // same footprint, title/slider/controls underneath stay put.
+  const [showLyrics, setShowLyrics] = useState(false);
 
   // Local scrub position so dragging the slider doesn't fight the ~500ms
   // status updates coming from the player while the user's finger is down.
@@ -92,9 +118,19 @@ export default function NowPlayingScreen({ navigation }) {
         <View style={styles.closeBtn} />
       </View>
 
-      <View style={styles.artworkWrap}>
-        <SpinningDisc thumbnailUrl={currentTrack.thumbnailUrl} spinning={status.playing} />
-      </View>
+      <Pressable style={styles.artworkWrap} onPress={() => setShowLyrics((v) => !v)}>
+        {showLyrics ? (
+          <LyricsPanel />
+        ) : (
+          <>
+            <SpinningDisc thumbnailUrl={currentTrack.thumbnailUrl} spinning={status.playing} />
+            <View style={styles.lyricsHint}>
+              <Ionicons name="mic-outline" size={12} color="rgba(255,255,255,0.55)" />
+              <Text style={styles.lyricsHintText}>탭하면 가사 보기</Text>
+            </View>
+          </>
+        )}
+      </Pressable>
 
       <View style={styles.meta}>
         <Text style={styles.title} numberOfLines={2}>
@@ -105,14 +141,6 @@ export default function NowPlayingScreen({ navigation }) {
             {currentTrack.uploader}
           </Text>
         )}
-      </View>
-
-      <View style={styles.lyricsCard}>
-        <View style={styles.lyricsHeader}>
-          <Ionicons name="mic-outline" size={14} color="rgba(255,255,255,0.5)" />
-          <Text style={styles.lyricsHeaderText}>가사</Text>
-        </View>
-        <Text style={styles.lyricsPlaceholder}>가사는 준비 중이에요.</Text>
       </View>
 
       <View style={styles.sliderWrap}>
@@ -217,16 +245,19 @@ const styles = StyleSheet.create({
   meta: { marginTop: 20 },
   title: { color: colors.onInk, fontFamily: fonts.extraBold, fontSize: 20, lineHeight: 25 },
   uploader: { color: 'rgba(255,255,255,0.55)', fontFamily: fonts.medium, fontSize: 14, marginTop: 6 },
-  lyricsCard: {
-    marginTop: 16,
+  lyricsPanel: {
+    width: DISC_SIZE + 24,
+    height: DISC_SIZE,
     backgroundColor: colors.inkAlt,
-    borderRadius: 14,
-    padding: 14,
-    minHeight: 76,
+    borderRadius: 20,
+    padding: 16,
   },
-  lyricsHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
+  lyricsHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   lyricsHeaderText: { color: 'rgba(255,255,255,0.5)', fontFamily: fonts.semiBold, fontSize: 11, letterSpacing: 0.5 },
-  lyricsPlaceholder: { color: 'rgba(255,255,255,0.4)', fontFamily: fonts.medium, fontSize: 13 },
+  lyricsBody: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10 },
+  lyricsPlaceholder: { color: 'rgba(255,255,255,0.45)', fontFamily: fonts.medium, fontSize: 13 },
+  lyricsHint: { flexDirection: 'row', alignItems: 'center', gap: 5, justifyContent: 'center', marginTop: 10 },
+  lyricsHintText: { color: 'rgba(255,255,255,0.55)', fontFamily: fonts.medium, fontSize: 11 },
   sliderWrap: { marginTop: 18 },
   slider: { width: '100%', height: 32 },
   timeRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: -4 },
