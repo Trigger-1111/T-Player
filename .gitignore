@@ -19,9 +19,9 @@ app/*.tsbuildinfo
 app/ios/
 app/android/
 
-# Real server URL/API key for this maintainer's device — see
-# app/src/config/serverDefaults.local.example.js for the template.
-app/src/config/serverDefaults.local.js
+# Real server URL/API key for this maintainer's device — see app/.env.example
+# for the template. For EAS builds these come from `eas env:set` instead.
+app/.env
 
 # --- backend (FastAPI) ---
 backend/venv/
